@@ -1,0 +1,62 @@
+---
+clusterName: kubernetes
+
+talosVersion: "${talosVersion}"
+kubernetesVersion: "${kubernetesVersion}"
+
+endpoint: https://10.0.10.11:6443
+additionalApiServerCertSans: &sans
+  - "127.0.0.1"
+  - "10.0.10.11"
+additionalMachineCertSans: *sans
+
+clusterPodNets: ["10.42.0.0/16"]
+clusterSvcNets: ["10.43.0.0/16"]
+
+# Disable built-in CNI to use Cilium
+cniConfig:
+  name: none
+
+nodes:
+  - hostname: "serenity-0"
+    ipAddress: "10.0.10.10"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/039535a70c3bd1667c355eca78571267704e55c8a24785033d183b8f26e39d82
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:52:e2:7b"
+        dhcp: false
+        addresses:
+          - "10.0.10.10/24"
+        routes:
+          - gateway: "10.0.10.1"
+            network: 0.0.0.0/0
+        mtu: 1500
+        vip:
+          ip: "10.0.10.11"
+    patches:
+      - # Load kernel modules
+        |-
+        machine:
+          kernel:
+            modules:
+              - name: mei
+              - name: intel-ucode
+              - name: i915
+
+# Global patches
+patches:
+  - "@./patches/global/machine-files.yaml"
+  - "@./patches/global/machine-kubelet.yaml"
+  - "@./patches/global/machine-network.yaml"
+  - "@./patches/global/machine-sysctls.yaml"
+  - "@./patches/global/machine-time.yaml"
+
+# Controller patches
+controlPlane:
+  patches:
+    - "@./patches/controller/cluster.yaml"
+
