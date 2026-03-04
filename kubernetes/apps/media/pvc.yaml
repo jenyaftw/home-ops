@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-pv
+  labels:
+    type: nfs
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 3.8Ti
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 10.0.10.20
+    path: "/export/media"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-pvc
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 3.8Ti
+  volumeName: data-pv
