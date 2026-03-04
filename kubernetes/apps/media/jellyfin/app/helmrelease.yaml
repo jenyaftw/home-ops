@@ -26,9 +26,6 @@ spec:
               repository: jellyfin/jellyfin
               tag: 10.11.0
             env:
-              DOTNET_SYSTEM_IO_DISABLEFILELOCKING: "true"
-              JELLYFIN_FFmpeg__probesize: 50000000
-              JELLYFIN_FFmpeg__analyzeduration: 50000000
               TZ: Europe/Kyiv
             resources:
               requests:
