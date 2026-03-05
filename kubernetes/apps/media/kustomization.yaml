@@ -6,4 +6,5 @@ namespace: default
 resources:
   - ./pvc.yaml
   - ./flaresolverr/ks.yaml
+  - ./radarr/ks.yaml
   - ./jellyfin/ks.yaml
