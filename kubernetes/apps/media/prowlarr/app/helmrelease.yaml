@@ -1,0 +1,99 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app prowlarr
+spec:
+  interval: 10m
+  timeout: 5m
+  chartRef:
+    kind: OCIRepository
+    name: prowlarr
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  test:
+    enable: true
+  driftDetection:
+    mode: enabled
+    ignore:
+      - paths: ["/spec/replicas"]
+        target:
+          kind: Deployment
+  values:
+    controllers:
+      *app:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/home-operations/prowlarr
+              tag: 2.3.1.5238@sha256:4394dff2311238bf5c31e006872122ed4e5f6bf042d33528d80acd44a09c57f7
+            env:
+              TZ: Europe/Kyiv
+              DOTNET_DataProtection__KeyPath: /config/dataprotection-keys
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: false
+            resources:
+              requests:
+                cpu: 300m
+                memory: 1Gi
+              limits:
+                memory: 4Gi
+
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+
+    service:
+      app:
+        controller: *app
+        ports:
+          http:
+            port: &port 9696
+
+    route:
+      app:
+        hostnames: ["prowlarr.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
+
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: local-path
+        globalMounts:
+          - path: /config
+
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: /config/Cache
