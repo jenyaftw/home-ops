@@ -8,4 +8,5 @@ resources:
   - ./flaresolverr/ks.yaml
   - ./radarr/ks.yaml
   - ./sonarr/ks.yaml
+  - ./sabnzbd/ks.yaml
   - ./jellyfin/ks.yaml
