@@ -66,3 +66,7 @@ spec:
         storageClass: local-path
         globalMounts:
           - path: /config
+      media:
+        existingClaim: data-pvc
+        globalMounts:
+          - path: /data
