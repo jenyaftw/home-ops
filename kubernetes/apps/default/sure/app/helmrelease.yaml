@@ -1,0 +1,155 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: sure
+spec:
+  interval: 10m
+  timeout: 10m
+  dependsOn:
+    - name: sure-db
+    - name: sure-redis
+  chartRef:
+    kind: OCIRepository
+    name: sure-app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  test:
+    enable: true
+  driftDetection:
+    mode: enabled
+    ignore:
+      - paths: ["/spec/replicas"]
+        target:
+          kind: Deployment
+  values:
+    defaultPodOptions:
+      enableServiceLinks: false
+
+    controllers:
+      web:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/we-promise/sure
+              tag: stable
+            envFrom:
+              - secretRef:
+                  name: sure-secret
+            env:
+              PORT: &port 3000
+              SELF_HOSTED: "true"
+              ONBOARDING_STATE: "open"
+              APP_DOMAIN: "https://sure.jenya.lol"
+              RAILS_ASSUME_SSL: "true"
+              RAILS_FORCE_SSL: "false"
+              DB_HOST: "sure-db"
+              DB_PORT: "5432"
+              REDIS_URL: "redis://sure-redis:6379/1"
+              RAILS_MAX_THREADS: "2"
+              WEB_CONCURRENCY: "1"
+              MALLOC_ARENA_MAX: "2"
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 30
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 6
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
+
+      worker:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/we-promise/sure
+              tag: stable
+            command:
+              - bundle
+              - exec
+              - sidekiq
+            envFrom:
+              - secretRef:
+                  name: sure-secret
+            env:
+              SELF_HOSTED: "true"
+              ONBOARDING_STATE: "open"
+              APP_DOMAIN: "https://sure.jenya.lol"
+              RAILS_ASSUME_SSL: "true"
+              RAILS_FORCE_SSL: "false"
+              DB_HOST: "sure-db"
+              DB_PORT: "5432"
+              REDIS_URL: "redis://sure-redis:6379/1"
+              RAILS_MAX_THREADS: "2"
+              MALLOC_ARENA_MAX: "2"
+            resources:
+              requests:
+                cpu: 25m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+
+    service:
+      web:
+        controller: web
+        ports:
+          http:
+            port: *port
+
+    route:
+      web:
+        hostnames: ["sure.jenya.lol"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: web
+                port: *port
+
+    persistence:
+      storage:
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        storageClass: local-path
+        advancedMounts:
+          web:
+            app:
+              - path: /rails/storage
+          worker:
+            app:
+              - path: /rails/storage
