@@ -19,6 +19,8 @@ spec:
         lbipam.cilium.io/ips: "10.0.10.12"
       externalTrafficPolicy: Cluster
     watchedResources: ["HTTPRoute", "Service"]
+    fallthrough:
+      enabled: true
     extraZonePlugins:
       - name: log
       - name: errors
