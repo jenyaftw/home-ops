@@ -20,5 +20,16 @@ spec:
       externalTrafficPolicy: Cluster
     watchedResources: ["HTTPRoute", "Service"]
     extraZonePlugins:
+      - name: log
+      - name: errors
+      - name: health
+        configBlock: |-
+          lameduck 5s
+      - name: ready
+      - name: prometheus
+        parameters: 0.0.0.0:9153
       - name: forward
         parameters: . 1.1.1.1 1.0.0.1
+      - name: loop
+      - name: reload
+      - name: loadbalance
