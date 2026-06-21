@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: decypharr-config-seed
+data:
+  # Seed config copied to the config PVC by an init container ONLY if no
+  # config.json exists yet. After first start, manage settings (incl. the
+  # Real-Debrid API key) via the Decypharr Web UI - those edits persist on the
+  # PVC and are NOT overwritten by changes to this ConfigMap.
+  config.json: |
+    {
+      "url_base": "/",
+      "port": "8282",
+      "log_level": "info",
+      "use_auth": false,
+      "debrids": [
+        {
+          "name": "realdebrid",
+          "api_key": "",
+          "folder": "/mnt/remote/realdebrid/__all__",
+          "rate_limit": "250/minute",
+          "use_webdav": true
+        }
+      ],
+      "qbittorrent": {
+        "download_folder": "/mnt/symlinks",
+        "categories": ["sonarr", "radarr"],
+        "refresh_interval": 15
+      },
+      "rclone": {
+        "enabled": true,
+        "mount_path": "/mnt/remote",
+        "vfs_cache_mode": "full",
+        "uid": 1000,
+        "gid": 1000
+      }
+    }

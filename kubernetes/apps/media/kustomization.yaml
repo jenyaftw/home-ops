@@ -5,6 +5,7 @@ namespace: default
 
 resources:
   - ./pvc.yaml
+  - ./decypharr/ks.yaml
   - ./flaresolverr/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml

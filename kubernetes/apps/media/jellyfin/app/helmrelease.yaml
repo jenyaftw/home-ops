@@ -111,6 +111,17 @@ spec:
         globalMounts:
           - path: /data
 
+      # Shared with decypharr: the rclone-mounted Real-Debrid library at
+      # /mnt/remote that library symlinks point to. HostToContainer lets
+      # decypharr's FUSE submounts appear inside Jellyfin so it can stream.
+      shared:
+        type: hostPath
+        hostPath: /var/mnt/decypharr
+        hostPathType: DirectoryOrCreate
+        globalMounts:
+          - path: /mnt
+            mountPropagation: HostToContainer
+
       transcode:
         type: emptyDir
 

@@ -89,3 +89,14 @@ spec:
         existingClaim: data-pvc
         globalMounts:
           - path: /data
+
+      # Shared with decypharr: the rclone-mounted Real-Debrid library
+      # (/mnt/remote) and decypharr's torrent symlinks (/mnt/symlinks).
+      # HostToContainer lets decypharr's FUSE submounts appear here.
+      shared:
+        type: hostPath
+        hostPath: /var/mnt/decypharr
+        hostPathType: DirectoryOrCreate
+        globalMounts:
+          - path: /mnt
+            mountPropagation: HostToContainer
