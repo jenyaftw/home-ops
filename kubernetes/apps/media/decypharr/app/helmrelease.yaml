@@ -144,6 +144,14 @@ spec:
           - path: /seed
             readOnly: true
 
+      # Shared NFS media library. decypharr writes its torrent symlinks under
+      # /data/Downloads so the *arr import (download folder -> root folder) stays
+      # on the same filesystem as the existing /data/tv, /data/movies libraries.
+      media:
+        existingClaim: data-pvc
+        globalMounts:
+          - path: /data
+
       # FUSE device for rclone. Scoped to the app container only.
       fuse:
         type: hostPath

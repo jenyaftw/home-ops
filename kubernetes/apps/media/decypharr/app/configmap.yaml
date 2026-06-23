@@ -24,7 +24,7 @@ data:
         }
       ],
       "qbittorrent": {
-        "download_folder": "/mnt/symlinks",
+        "download_folder": "/data/Downloads",
         "categories": ["sonarr", "radarr"],
         "refresh_interval": 15
       },
