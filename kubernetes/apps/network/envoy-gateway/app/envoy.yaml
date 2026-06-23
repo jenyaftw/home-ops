@@ -11,12 +11,18 @@ spec:
     type: Kubernetes
     kubernetes:
       envoyDeployment:
-        replicas: 2
+        # Single-node cluster: 2 replicas share fate and give no real HA while
+        # reserving double the memory. Bump back up if you add nodes.
+        replicas: 1
         container:
           imageRepository: mirror.gcr.io/envoyproxy/envoy
           resources:
+            # Set an explicit request well below the limit. Without a request,
+            # Kubernetes defaults it up to the limit (1Gi), over-reserving the
+            # node (actual usage is ~150Mi).
             requests:
               cpu: 100m
+              memory: 256Mi
             limits:
               memory: 1Gi
       envoyService:
