@@ -39,6 +39,21 @@ spec:
               - test -f /app/config.json || cp /seed/config.json /app/config.json
             securityContext:
               runAsUser: 0
+          # Ensure the shared host dir is owned by the decypharr user (1000) so it
+          # can create /mnt/symlinks etc. hostPath mounts ignore fsGroup, so this
+          # has to be done explicitly. Non-recursive: never touches FUSE submounts.
+          init-perms:
+            image:
+              repository: busybox
+              tag: 1.37.0
+            command:
+              - /bin/sh
+              - -c
+              - mkdir -p /mnt/symlinks /mnt/remote && chown 1000:1000 /mnt /mnt/symlinks /mnt/remote
+            securityContext:
+              runAsUser: 0
+              # privileged required for the Bidirectional shared mount below.
+              privileged: true
         containers:
           app:
             image:
@@ -152,5 +167,8 @@ spec:
         advancedMounts:
           decypharr:
             app:
+              - path: /mnt
+                mountPropagation: Bidirectional
+            init-perms:
               - path: /mnt
                 mountPropagation: Bidirectional

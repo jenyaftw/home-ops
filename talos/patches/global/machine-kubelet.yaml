@@ -2,6 +2,20 @@ machine:
   kubelet:
     extraConfig:
       serializeImagePulls: false
+    # Make /var/mnt writable inside the kubelet and shared (rshared) so:
+    #  1. hostPath volumes under /var/mnt can be created (Talos /var/mnt is
+    #     otherwise read-only to the kubelet).
+    #  2. decypharr's rclone FUSE mount propagates back to the host and into the
+    #     Sonarr/Radarr/Jellyfin pods (Bidirectional/HostToContainer require the
+    #     underlying host mount to be rshared).
+    extraMounts:
+      - destination: /var/mnt
+        type: bind
+        source: /var/mnt
+        options:
+          - bind
+          - rshared
+          - rw
     nodeIP:
       validSubnets:
         - 10.0.10.0/24
