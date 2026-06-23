@@ -10,9 +10,14 @@ spec:
     kind: OCIRepository
     name: decypharr
   install:
+    # Don't gate the release on pod readiness: the privileged FUSE mount + init
+    # steps can take a moment, and a readiness timeout must not trigger a
+    # rollback to a previous (possibly broken) revision.
+    disableWait: true
     remediation:
       retries: 3
   upgrade:
+    disableWait: true
     cleanupOnFail: true
     remediation:
       retries: 3
