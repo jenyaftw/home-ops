@@ -1,0 +1,106 @@
+---
+# Builds the TwistedRat/decypharr reliability fork (no prebuilt image is
+# published upstream) and pushes it to ghcr.io/<owner>/decypharr.
+#
+# The fork has no releases/tags, so `main` is a moving target: this workflow
+# tags every build with the source commit SHA (decypharr-<sha>) so the cluster
+# can pin an immutable image. Re-run it (Actions tab -> Run workflow) to pull in
+# new fork commits.
+#
+# After a successful run:
+#   1. Make the GHCR package public (Packages -> decypharr -> Settings ->
+#      Change visibility) OR add an imagePullSecret to the namespace.
+#   2. Pin the image in kubernetes/apps/media/decypharr/app/helmrelease.yaml to
+#      the digest printed in this run's summary.
+name: "Build decypharr (fork)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "TwistedRat/decypharr git ref (branch/tag/sha) to build"
+        required: true
+        default: "main"
+      platforms:
+        description: "Target platforms (comma-separated)"
+        required: true
+        default: "linux/amd64"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  SOURCE_REPO: TwistedRat/decypharr
+  IMAGE: ghcr.io/${{ github.repository_owner }}/decypharr
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout decypharr fork
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.SOURCE_REPO }}
+          ref: ${{ github.event.inputs.ref }}
+          fetch-depth: 0
+
+      - name: Resolve source metadata
+        id: meta
+        run: |
+          SHA="$(git rev-parse --short HEAD)"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "version=fork-${SHA}" >> "$GITHUB_OUTPUT"
+          echo "Building ${SOURCE_REPO}@$(git rev-parse HEAD)"
+
+      - name: Set up QEMU
+        if: contains(github.event.inputs.platforms, 'arm')
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ github.event.inputs.platforms }}
+          push: true
+          provenance: false
+          build-args: |
+            VERSION=${{ steps.meta.outputs.version }}
+            CHANNEL=fork
+          tags: |
+            ${{ env.IMAGE }}:decypharr-${{ steps.meta.outputs.sha }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Summary
+        run: |
+          {
+            echo "### decypharr fork image built"
+            echo ""
+            echo "- Source: \`${SOURCE_REPO}@${{ steps.meta.outputs.sha }}\`"
+            echo "- Tag: \`${IMAGE}:decypharr-${{ steps.meta.outputs.sha }}\`"
+            echo "- Digest: \`${{ steps.build.outputs.digest }}\`"
+            echo ""
+            echo "Pin this in the HelmRelease:"
+            echo '```yaml'
+            echo "repository: ${IMAGE}"
+            echo "tag: decypharr-${{ steps.meta.outputs.sha }}@${{ steps.build.outputs.digest }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
