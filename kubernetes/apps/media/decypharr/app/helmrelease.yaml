@@ -65,9 +65,12 @@ spec:
               privileged: true
         containers:
           app:
+            # TwistedRat/decypharr reliability fork, built from source by
+            # .github/workflows/build-decypharr.yaml (no upstream image exists).
+            # Tag is the source commit SHA; re-run the workflow + re-pin to update.
             image:
-              repository: cy01/blackhole
-              tag: v2.3@sha256:94359465fb6337b2ab8168c6abdacf2a8fb60b6b009002ef1bbf3c466823ff31
+              repository: ghcr.io/jenyaftw/decypharr
+              tag: decypharr-d9dd7ba@sha256:0f34ef186bee7f68ccb045a86b2dfe4455ad79aa78cc8c7326f8eff0cc05662f
             env:
               TZ: Europe/Kyiv
               PUID: "1000"
