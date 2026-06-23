@@ -39,9 +39,13 @@ spec:
               - test -f /app/config.json || cp /seed/config.json /app/config.json
             securityContext:
               runAsUser: 0
-          # Ensure the shared host dir is owned by the decypharr user (1000) so it
-          # can create /mnt/symlinks etc. hostPath mounts ignore fsGroup, so this
-          # has to be done explicitly. Non-recursive: never touches FUSE submounts.
+          # Prep the shared host dir for the rclone mount:
+          #  - lazily detach any stale FUSE mount left by a previous pod
+          #    ("transport endpoint is not connected"), otherwise rclone can't
+          #    remount and chown/mkdir would fail.
+          #  - chown /mnt to uid 1000 so rclone (PUID 1000) can create its
+          #    mountpoint there. hostPath mounts ignore fsGroup, hence explicit.
+          # Non-recursive: never touches the FUSE submount contents.
           init-perms:
             image:
               repository: busybox
@@ -49,7 +53,7 @@ spec:
             command:
               - /bin/sh
               - -c
-              - mkdir -p /mnt/symlinks /mnt/remote && chown 1000:1000 /mnt /mnt/symlinks /mnt/remote
+              - umount -l /mnt/remote 2>/dev/null || true; mkdir -p /mnt && chown 1000:1000 /mnt
             securityContext:
               runAsUser: 0
               # privileged required for the Bidirectional shared mount below.
