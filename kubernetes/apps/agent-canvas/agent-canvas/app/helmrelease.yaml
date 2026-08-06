@@ -26,6 +26,21 @@ spec:
     controllers:
       *app:
         type: statefulset
+        initContainers:
+          # local-path-provisioner volumes are hostPath-backed; kubelet's
+          # fsGroup ownership fixup doesn't apply to them, so the mounts come
+          # up owned by root. Chown to the openhands user (10001) before the
+          # main container starts, or it can't write ~/.openhands or ~/workspace.
+          init-perms:
+            image:
+              repository: busybox
+              tag: 1.37.0
+            command:
+              - /bin/sh
+              - -c
+              - chown -R 10001:10001 /home/openhands/.openhands /home/openhands/workspace
+            securityContext:
+              runAsUser: 0
         containers:
           app:
             # All-in-one image bundling the agent-canvas frontend + agent-server.
