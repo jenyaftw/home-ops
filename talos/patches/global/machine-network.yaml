@@ -4,3 +4,10 @@ machine:
     nameservers:
       - 1.1.1.1
       - 1.0.0.1
+    # Lets the node itself (kubelet/containerd image pulls, not just pods)
+    # resolve the in-cluster registry without touching the resolver chain
+    # above — public nameservers have never heard of this LAN-only name.
+    extraHostEntries:
+      - ip: 10.0.10.13 # envoy-internal Gateway LB IP
+        aliases:
+          - registry.jenya.lol
