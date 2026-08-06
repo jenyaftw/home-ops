@@ -23,6 +23,15 @@ spec:
         target:
           kind: StatefulSet
   values:
+    # Stable identity the agent-canvas pod runs under. Deploy access is
+    # granted separately, per-namespace, via RoleBindings in the target
+    # namespace's own manifests — see kubernetes/apps/agent-sandbox for the
+    # sandbox namespace this identity currently has admin rights in. This SA
+    # itself has zero permissions beyond that.
+    serviceAccount:
+      agent-canvas:
+        forceRename: agent-canvas
+
     controllers:
       *app:
         type: statefulset
@@ -41,6 +50,17 @@ spec:
               - chown -R 10001:10001 /home/openhands/.openhands /home/openhands/workspace
             securityContext:
               runAsUser: 0
+          # Copies a pinned kubectl binary onto the kubectl emptyDir, shared
+          # with the main container via the persistence.kubectl mount below.
+          # Pin matches the cluster's kubernetesVersion (talos/talenv.yaml).
+          install-kubectl:
+            image:
+              repository: bitnami/kubectl
+              tag: "1.35.1"
+            command:
+              - /bin/sh
+              - -c
+              - cp "$(command -v kubectl)" /shared/bin/kubectl
         containers:
           app:
             # All-in-one image bundling the agent-canvas frontend + agent-server.
@@ -51,6 +71,10 @@ spec:
               tag: latest
             env:
               TZ: Europe/Kyiv
+              # Prepends the shared kubectl mount onto the image's own baked-in
+              # PATH (verified via `docker inspect` — do not reorder without
+              # re-checking, an incorrect PATH breaks the app's own tooling).
+              PATH: /shared/bin:/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
               # Authenticates the Claude Code CLI subprocess (ACP agent) with a
               # Claude Pro/Max subscription instead of a billed Anthropic API
               # key. No LLM_MODEL/LLM_API_KEY needed here — those configure
@@ -136,3 +160,7 @@ spec:
             subPath: openhands
           - path: /home/openhands/workspace
             subPath: workspace
+      kubectl:
+        type: emptyDir
+        globalMounts:
+          - path: /shared/bin

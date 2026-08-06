@@ -9,3 +9,4 @@ resources:
   - ./default
   - ./media
   - ./agent-canvas
+  - ./agent-sandbox
