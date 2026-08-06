@@ -52,11 +52,13 @@ spec:
               runAsUser: 0
           # Copies a pinned kubectl binary onto the kubectl emptyDir, shared
           # with the main container via the persistence.kubectl mount below.
-          # Pin matches the cluster's kubernetesVersion (talos/talenv.yaml).
+          # Pin tracks the cluster's kubernetesVersion minor (talos/talenv.yaml)
+          # — bitnami/kubectl no longer ships pinned version tags, and
+          # rancher/kubectl ships a scratch image with no shell to cp from.
           install-kubectl:
             image:
-              repository: bitnami/kubectl
-              tag: "1.35.1"
+              repository: alpine/k8s
+              tag: "1.35.6"
             command:
               - /bin/sh
               - -c
