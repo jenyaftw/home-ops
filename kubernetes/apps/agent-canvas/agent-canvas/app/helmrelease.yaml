@@ -47,7 +47,7 @@ spec:
             command:
               - /bin/sh
               - -c
-              - chown -R 10001:10001 /home/openhands/.openhands /home/openhands/workspace
+              - chown -R 10001:10001 /home/openhands/.openhands /home/openhands/workspace /home/openhands/.agents
             securityContext:
               runAsUser: 0
           # Copies a pinned kubectl binary onto the kubectl emptyDir, shared
@@ -116,7 +116,12 @@ spec:
                 cpu: 250m
                 memory: 512Mi
               limits:
-                memory: 4Gi
+                # Bumped from 4Gi after an OOMKill (exit 137) — a build attempt
+                # (chromium/vscode-server/LLM subprocess/build tooling all
+                # sharing this one container) can spike well past steady-state
+                # usage (~1.8Gi at rest). This is a ceiling, not a reservation
+                # — costs nothing unless something actually uses it.
+                memory: 6Gi
 
     defaultPodOptions:
       # Chart's upstream image runs as the `openhands` user (UID 10001); fsGroup
@@ -162,6 +167,13 @@ spec:
             subPath: openhands
           - path: /home/openhands/workspace
             subPath: workspace
+          # Custom skills (e.g. deploy-app). This was missing before and is
+          # exactly why a skill written straight to /home/openhands/.agents
+          # vanished on the next pod restart — that path was plain container
+          # rootfs, not PVC-backed, same as anything else outside the two
+          # mounts above.
+          - path: /home/openhands/.agents
+            subPath: agents
       kubectl:
         type: emptyDir
         globalMounts:
