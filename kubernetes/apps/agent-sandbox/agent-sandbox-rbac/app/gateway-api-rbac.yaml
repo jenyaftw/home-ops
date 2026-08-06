@@ -1,0 +1,27 @@
+---
+# The built-in `admin` ClusterRole (bound in rolebinding.yaml) is an aggregated
+# role and does not include gateway.networking.k8s.io — Gateway API CRDs
+# aren't labeled to aggregate into admin/edit/view by default. Without this,
+# the agent can create Deployments/Services here but every HTTPRoute apply
+# is silently denied, so nothing it deploys is ever reachable.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gateway-api-admin
+rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["*"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-canvas-gateway-api-admin
+subjects:
+  - kind: ServiceAccount
+    name: agent-canvas
+    namespace: agent-canvas
+roleRef:
+  kind: Role
+  name: gateway-api-admin
+  apiGroup: rbac.authorization.k8s.io
