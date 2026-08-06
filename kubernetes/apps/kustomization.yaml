@@ -8,3 +8,4 @@ resources:
   - ./network
   - ./default
   - ./media
+  - ./agent-canvas

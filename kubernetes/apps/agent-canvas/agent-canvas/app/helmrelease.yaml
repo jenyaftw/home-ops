@@ -1,0 +1,123 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app agent-canvas
+spec:
+  interval: 10m
+  timeout: 5m
+  chartRef:
+    kind: OCIRepository
+    name: agent-canvas
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  driftDetection:
+    mode: enabled
+    ignore:
+      - paths: ["/spec/replicas"]
+        target:
+          kind: StatefulSet
+  values:
+    controllers:
+      *app:
+        type: statefulset
+        containers:
+          app:
+            # All-in-one image bundling the agent-canvas frontend + agent-server.
+            # No fixed release tag is published upstream at time of writing;
+            # pin to a specific sha-<git-sha> once you've picked a version.
+            image:
+              repository: ghcr.io/openhands/agent-canvas
+              tag: latest
+            env:
+              TZ: Europe/Kyiv
+              # Authenticates the Claude Code CLI subprocess (ACP agent) with a
+              # Claude Pro/Max subscription instead of a billed Anthropic API
+              # key. No LLM_MODEL/LLM_API_KEY needed here — those configure
+              # OpenHands' own built-in agent, which isn't used once you switch
+              # Settings -> Agent to ACP -> Claude Code in the web UI.
+              CLAUDE_CODE_OAUTH_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: agent-canvas-secret
+                    key: CLAUDE_CODE_OAUTH_TOKEN
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: &port 8000
+                  initialDelaySeconds: 10
+                  periodSeconds: 15
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probes
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *port
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 250m
+                memory: 512Mi
+              limits:
+                memory: 4Gi
+
+    defaultPodOptions:
+      # Chart's upstream image runs as the `openhands` user (UID 10001); fsGroup
+      # ensures the PVC is writable by that user.
+      securityContext:
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        controller: *app
+        ports:
+          http:
+            port: *port
+
+    route:
+      app:
+        hostnames: ["agent-canvas.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
+            # Agent Canvas holds long-lived WebSocket sessions; keep the proxy
+            # from cutting them off like the upstream nginx ingress guidance does.
+            timeouts:
+              request: 3600s
+              backendRequest: 3600s
+
+    persistence:
+      # Agent settings, encrypted secrets, conversation history, automation
+      # SQLite DB, and auto-generated OH_SECRET_KEY.
+      data:
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 20Gi
+        storageClass: local-path
+        globalMounts:
+          - path: /home/openhands/.openhands
+            subPath: openhands
+          - path: /home/openhands/workspace
+            subPath: workspace
