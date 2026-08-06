@@ -10,3 +10,4 @@ resources:
   - ./media
   - ./agent-canvas
   - ./agent-sandbox
+  - ./registry
