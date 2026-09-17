@@ -174,11 +174,24 @@ data "talos_machine_configuration" "controlplane" {
       volumeType = "disk"
       provisioning = {
         diskSelector = {
-          match = "disk.size > 100u * GiB"
+          match = "disk.size > 150u * GiB"
         }
       }
       filesystem = {
         type = "ext4"
+      }
+    }),
+
+    # Create an LVM volume group on the second data disk for OpenEBS
+    # LVM-LocalPV to consume.
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "LVMVolumeGroupConfig"
+      name       = "openebs"
+      provisioning = {
+        volumeSelector = {
+          match = "disk.size > 50u * GiB && disk.size < 150u * GiB"
+        }
       }
     })
   ]
@@ -219,11 +232,24 @@ data "talos_machine_configuration" "worker" {
       volumeType = "disk"
       provisioning = {
         diskSelector = {
-          match = "disk.size > 100u * GiB"
+          match = "disk.size > 150u * GiB"
         }
       }
       filesystem = {
         type = "ext4"
+      }
+    }),
+
+    # Create an LVM volume group on the second data disk for OpenEBS
+    # LVM-LocalPV to consume.
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "LVMVolumeGroupConfig"
+      name       = "openebs"
+      provisioning = {
+        volumeSelector = {
+          match = "disk.size > 50u * GiB && disk.size < 150u * GiB"
+        }
       }
     })
   ]

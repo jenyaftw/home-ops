@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - ./cilium/ks.yaml
   - ./longhorn/ks.yaml
+  - ./openebs-lvmlocalpv/ks.yaml
   - ./metrics-server/ks.yaml
   - ./gateway-api-crds/ks.yaml
   - ./gateway/ks.yaml
