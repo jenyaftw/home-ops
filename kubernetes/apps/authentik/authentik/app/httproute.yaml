@@ -1,0 +1,18 @@
+# LAN-only for now via the internal Gateway. Add the external Gateway as a
+# second parentRef later if you want it reachable for people signing in
+# with Discord from outside the LAN.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: authentik
+  namespace: authentik
+spec:
+  parentRefs:
+    - name: internal
+      namespace: kube-system
+  hostnames:
+    - authentik.jenya.lol
+  rules:
+    - backendRefs:
+        - name: authentik-server
+          port: 80

@@ -1,0 +1,25 @@
+# Shared 3-instance Postgres cluster. Each app gets its own Database +
+# DatabaseRole declared alongside its own manifests (see kubernetes/apps/
+# authentik/authentik/app/ for the pattern), all pointing at this Cluster
+# by name. CNPG handles leader election/failover itself - each instance
+# has its own local openebs-lvm volume, no storage-layer replication.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: database
+spec:
+  instances: 3
+  storage:
+    storageClass: openebs-lvm
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  bootstrap:
+    initdb:
+      database: app
+      owner: app

@@ -6,3 +6,5 @@ resources:
   - ./external-dns
   - ./cloudflare-ddns
   - ./podinfo
+  - ./database
+  - ./authentik
