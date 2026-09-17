@@ -2,7 +2,8 @@
 # DatabaseRole declared alongside its own manifests (see kubernetes/apps/
 # authentik/authentik/app/ for the pattern), all pointing at this Cluster
 # by name. CNPG handles leader election/failover itself - each instance
-# has its own local openebs-lvm volume, no storage-layer replication.
+# has its own dedicated Proxmox-backed disk (proxmox-lvm), which follows
+# it if it reschedules to another node, no storage-layer replication.
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -11,7 +12,7 @@ metadata:
 spec:
   instances: 3
   storage:
-    storageClass: openebs-lvm
+    storageClass: proxmox-lvm
     size: 5Gi
   resources:
     requests:
