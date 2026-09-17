@@ -1,0 +1,22 @@
+# Same fix as flux-operator-mcp: cilium-envoy runs hostNetwork: true, so
+# Gateway-proxied traffic reaches this pod under Cilium's reserved "host"
+# and "ingress" identities, which the chart's own namespace-based
+# NetworkPolicy can't match.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: flux-operator-web-gateway
+  namespace: flux-system
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: flux-operator
+      app.kubernetes.io/name: flux-operator
+  ingress:
+    - fromEntities:
+        - host
+        - ingress
+      toPorts:
+        - ports:
+            - port: "9080"
+              protocol: TCP

@@ -4,3 +4,5 @@ resources:
   - ./ocirepository.yaml
   - ./helmrelease.yaml
   - ./fluxinstance.yaml
+  - ./httproute.yaml
+  - ./networkpolicy.yaml
