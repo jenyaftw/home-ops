@@ -2,8 +2,11 @@ variable "cluster" {
   description = "Talos cluster and node configuration"
 
   type = object({
-    name     = string
-    endpoint = string
+    name = string
+
+    # Floating IP shared across control-plane nodes (Talos built-in VIP) so
+    # the cluster endpoint survives any single control-plane node going down.
+    vip = string
 
     nodes = list(object({
       type         = string
@@ -33,6 +36,8 @@ variable "talos_image_factory_id" {
 }
 
 locals {
+  endpoint = "https://${var.cluster.vip}:6443"
+
   nodes = {
     for node in var.cluster.nodes :
     node.hostname => node
@@ -130,7 +135,7 @@ resource "talos_machine_secrets" "this" {}
 
 data "talos_machine_configuration" "controlplane" {
   cluster_name     = var.cluster.name
-  cluster_endpoint = var.cluster.endpoint
+  cluster_endpoint = local.endpoint
   machine_type     = "controlplane"
   machine_secrets  = talos_machine_secrets.this.machine_secrets
 
@@ -139,6 +144,25 @@ data "talos_machine_configuration" "controlplane" {
     yamlencode({
       machine = {
         install = null
+      }
+    }),
+
+    # Floating IP for HA control-plane access - whichever control-plane node
+    # is elected leader answers on this address, so losing any one node
+    # (including the one kubeconfig/talosconfig point at) doesn't take down
+    # API access. `eth0` confirmed via `talosctl get links`.
+    yamlencode({
+      machine = {
+        network = {
+          interfaces = [
+            {
+              interface = "eth0"
+              vip = {
+                ip = var.cluster.vip
+              }
+            }
+          ]
+        }
       }
     }),
 
@@ -181,7 +205,7 @@ data "talos_machine_configuration" "controlplane" {
 
 data "talos_machine_configuration" "worker" {
   cluster_name     = var.cluster.name
-  cluster_endpoint = var.cluster.endpoint
+  cluster_endpoint = local.endpoint
   machine_type     = "worker"
   machine_secrets  = talos_machine_secrets.this.machine_secrets
 
