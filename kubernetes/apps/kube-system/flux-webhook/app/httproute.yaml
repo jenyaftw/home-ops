@@ -1,13 +1,14 @@
 # Exposes Flux's webhook receiver publicly so a GitHub webhook can trigger
 # immediate reconciliation instead of waiting for the poll interval.
-# Covered by the cloudflare-ddns wildcard record - excluded from external-dns.
+# Only attaches to the external Gateway, so external-dns-pihole (scoped to
+# the internal Gateway) never sees it; covered by the cloudflare-ddns
+# wildcard record, so the Cloudflare instance (opt-in via label) ignores it
+# too.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: flux-webhook
   namespace: flux-system
-  annotations:
-    external-dns.kubernetes.io/controller: ignore
 spec:
   parentRefs:
     - name: external

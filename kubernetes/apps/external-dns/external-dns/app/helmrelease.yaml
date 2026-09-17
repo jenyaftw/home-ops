@@ -37,6 +37,10 @@ spec:
       - --gateway-name=external
       - --gateway-namespace=kube-system
     domainFilters: ["jenya.lol"]
+    # Opt-in only: most apps ride the cloudflare-ddns wildcard record
+    # instead. Only resources explicitly labeled this way get their own
+    # dedicated Cloudflare record.
+    labelFilter: external-dns.io/enabled=true
     policy: sync
     registry: txt
     txtOwnerId: serenity
