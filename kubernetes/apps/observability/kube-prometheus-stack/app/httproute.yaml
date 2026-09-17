@@ -1,0 +1,20 @@
+# Routed through Authentik's embedded outpost, same pattern as
+# flux.jenya.lol - see kubernetes/apps/authentik/authentik/app/blueprint.yaml.
+# The outpost checks auth, then proxies to Grafana using its own
+# internal_host config. LAN-only via the internal Gateway.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: grafana
+  namespace: observability
+spec:
+  parentRefs:
+    - name: internal
+      namespace: kube-system
+  hostnames:
+    - grafana.jenya.lol
+  rules:
+    - backendRefs:
+        - name: authentik-server
+          namespace: authentik
+          port: 80

@@ -1,0 +1,14 @@
+# CNPG's own Cluster.spec.monitoring.enablePodMonitor is deprecated (the
+# docs now say to create a PodMonitor manually) - this selects the same
+# cnpg.io/cluster label and "metrics" port CNPG already exposes on 9187.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: postgres
+  namespace: database
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: postgres
+  podMetricsEndpoints:
+    - port: metrics

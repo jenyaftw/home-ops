@@ -1,0 +1,82 @@
+# Alertmanager is disabled - nothing configured to receive/route alerts
+# to yet. defaultRules still get created and evaluated by Prometheus
+# itself (visible in Grafana/Prometheus's own Alerts view), they just
+# don't page anywhere.
+#
+# *SelectorNilUsesHelmValues: false makes Prometheus pick up ANY
+# ServiceMonitor/PodMonitor/PrometheusRule/Probe cluster-wide, not just
+# ones carrying this release's own labels - so future apps don't need to
+# be wired into this HelmRelease to get scraped.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: observability
+spec:
+  interval: 1h
+  releaseName: kube-prometheus-stack
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      version: "91.4.x"
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: observability
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    alertmanager:
+      enabled: false
+
+    prometheus:
+      prometheusSpec:
+        retention: 10d
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+        ruleSelectorNilUsesHelmValues: false
+        probeSelectorNilUsesHelmValues: false
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 768Mi
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: proxmox-lvm
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 15Gi
+
+    grafana:
+      enabled: true
+      adminUser: admin
+      admin:
+        existingSecret: grafana-secrets
+        userKey: admin-user
+        passwordKey: admin-password
+      persistence:
+        enabled: true
+        storageClassName: proxmox-lvm
+        size: 5Gi
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+      grafana.ini:
+        server:
+          root_url: https://grafana.jenya.lol/
+      additionalDataSources:
+        - name: Loki
+          type: loki
+          url: http://loki.observability.svc.cluster.local:3100
+          access: proxy

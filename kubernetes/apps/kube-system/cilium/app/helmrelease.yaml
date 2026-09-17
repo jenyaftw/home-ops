@@ -34,6 +34,15 @@ spec:
 
     operator:
       replicas: 1
+      prometheus:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+          # kube-prometheus-stack (which owns the ServiceMonitor CRD) isn't
+          # guaranteed to exist yet when this HelmRelease reconciles - skip
+          # the chart's own "CRD must already exist" check instead of adding
+          # a reconcile-order dependency between the two.
+          trustCRDsExist: true
 
     securityContext:
       capabilities:
@@ -50,3 +59,24 @@ spec:
 
     gatewayAPI:
       enabled: true
+
+    prometheus:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        trustCRDsExist: true
+
+    # HTTP status codes and drops surfaced as Prometheus metrics, for the
+    # "HTTP failures" panel in Grafana - L7 visibility on Gateway traffic.
+    hubble:
+      metrics:
+        enabled:
+          - dns
+          - drop
+          - tcp
+          - flow
+          - icmp
+          - http
+        serviceMonitor:
+          enabled: true
+          trustCRDsExist: true

@@ -1,0 +1,21 @@
+# Lets HTTPRoutes in other namespaces (flux-operator-web in flux-system,
+# grafana in observability) target the authentik-server Service here, in
+# authentik's own namespace - every app protected via the embedded outpost
+# needs its own namespace listed here.
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-protected-app-httproutes
+  namespace: authentik
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: flux-system
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: observability
+  to:
+    - group: ""
+      kind: Service
+      name: authentik-server

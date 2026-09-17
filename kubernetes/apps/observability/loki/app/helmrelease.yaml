@@ -1,0 +1,85 @@
+# Single-binary mode with local filesystem storage - no S3/minio object
+# storage needed at this scale. useTestSchema/testSchemaConfig is the
+# chart's own (slightly misleadingly-named) supported way to run a
+# filesystem-backed schema; it's not test-only functionality.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: loki
+  namespace: observability
+spec:
+  interval: 1h
+  releaseName: loki
+  chart:
+    spec:
+      chart: loki
+      version: "7.3.x"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: observability
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    deploymentMode: SingleBinary
+
+    loki:
+      auth_enabled: false
+      compactor:
+        retention_enabled: true
+        delete_request_store: filesystem
+      commonConfig:
+        replication_factor: 1
+      storage:
+        type: filesystem
+      useTestSchema: true
+      testSchemaConfig:
+        configs:
+          - from: 2024-04-01
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: index_
+              period: 24h
+      limits_config:
+        retention_period: 168h
+
+    singleBinary:
+      replicas: 1
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: proxmox-lvm
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+
+    gateway:
+      enabled: false
+
+    read:
+      replicas: 0
+    write:
+      replicas: 0
+    backend:
+      replicas: 0
+
+    chunksCache:
+      enabled: false
+    resultsCache:
+      enabled: false
+
+    test:
+      enabled: false
+    lokiCanary:
+      enabled: false
+    minio:
+      enabled: false
