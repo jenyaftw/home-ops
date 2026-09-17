@@ -55,11 +55,3 @@ data:
         attrs:
           providers:
             - !KeyOf flux-proxy-provider
-          # The embedded outpost's config.authentik_host defaults to empty,
-          # which makes it build browser-facing OAuth redirect URLs (the
-          # /application/o/authorize/ step) against localhost instead of our
-          # real public hostname - set it explicitly to fix that.
-          # authentik_host_browser alone did not affect this redirect.
-          config:
-            authentik_host: https://authentik.jenya.lol
-            authentik_host_browser: https://authentik.jenya.lol

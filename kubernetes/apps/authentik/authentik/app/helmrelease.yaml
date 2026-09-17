@@ -46,6 +46,11 @@ spec:
     server:
       replicas: 1
       env:
+        # Base URL - required so the embedded outpost builds browser-facing
+        # redirects (e.g. the OAuth /application/o/authorize/ step) against
+        # our real hostname instead of defaulting to localhost.
+        - name: AUTHENTIK_HOST
+          value: https://authentik.jenya.lol
         - name: AUTHENTIK_BOOTSTRAP_EMAIL
           value: me@jenya.lol
         - name: AUTHENTIK_BOOTSTRAP_PASSWORD
@@ -61,6 +66,8 @@ spec:
     worker:
       replicas: 1
       env:
+        - name: AUTHENTIK_HOST
+          value: https://authentik.jenya.lol
         - name: AUTHENTIK_BOOTSTRAP_EMAIL
           value: me@jenya.lol
         - name: AUTHENTIK_BOOTSTRAP_PASSWORD
