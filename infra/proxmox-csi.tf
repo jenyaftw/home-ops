@@ -32,6 +32,12 @@ resource "proxmox_virtual_environment_user" "csi" {
 resource "proxmox_virtual_environment_user_token" "csi" {
   user_id    = proxmox_virtual_environment_user.csi.user_id
   token_name = "csi"
+
+  # Without this, the token has none of the user's privileges by default
+  # and needs its own separate ACL grant - simpler to just have it inherit
+  # the user's permissions directly, matching the plugin's own docs
+  # (`pveum user token add ... -privsep 0`).
+  privileges_separation = false
 }
 
 output "csi_token_id" {
@@ -41,7 +47,10 @@ output "csi_token_id" {
 }
 
 output "csi_token_secret" {
+  # .value is actually the full "user@realm!token=<uuid>" string, not the
+  # bare secret - split it to get just the <uuid> part the plugin's own
+  # config.yaml expects as a separate token_secret field.
   description = "Proxmox CSI plugin API token secret"
-  value       = proxmox_virtual_environment_user_token.csi.value
+  value       = split("=", proxmox_virtual_environment_user_token.csi.value)[1]
   sensitive   = true
 }
