@@ -11,6 +11,10 @@ resource "proxmox_virtual_environment_role" "csi" {
     "Datastore.Allocate",
     "Datastore.AllocateSpace",
     "Datastore.Audit",
+    # Undocumented in the plugin's install.md at the version pulled here,
+    # but required since v0.16 for GetCapacity's cluster/resources call -
+    # confirmed against github.com/sergelogvinov/proxmox-csi-plugin#503.
+    "Sys.Audit",
   ]
 }
 
