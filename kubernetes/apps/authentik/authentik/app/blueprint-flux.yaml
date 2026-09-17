@@ -1,0 +1,57 @@
+# Declares a Proxy Provider (Proxy mode - the embedded outpost itself
+# proxies to the upstream after checking auth) protecting flux.jenya.lol,
+# and assigns it to the embedded outpost. Verified identifiers against
+# the live database: default flow slugs, and the embedded outpost's
+# fixed `managed: goauthentik.io/outposts/embedded` key.
+#
+# To protect another app later: add its own ProxyProvider + Application
+# entries here (or a new blueprint), then add its !KeyOf to the outpost's
+# providers list below - that list is authoritative, not additive.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-blueprints
+  namespace: authentik
+data:
+  flux.yaml: |
+    version: 1
+    metadata:
+      name: Flux proxy provider
+    entries:
+      - model: authentik_flows.flow
+        id: default-authentication-flow
+        identifiers:
+          slug: default-authentication-flow
+      - model: authentik_flows.flow
+        id: default-authorization-flow
+        identifiers:
+          slug: default-provider-authorization-implicit-consent
+      - model: authentik_flows.flow
+        id: default-invalidation-flow
+        identifiers:
+          slug: default-provider-invalidation-flow
+      - model: authentik_providers_proxy.proxyprovider
+        id: flux-proxy-provider
+        identifiers:
+          name: flux-proxy
+        attrs:
+          authentication_flow: !KeyOf default-authentication-flow
+          authorization_flow: !KeyOf default-authorization-flow
+          invalidation_flow: !KeyOf default-invalidation-flow
+          mode: proxy
+          external_host: https://flux.jenya.lol
+          internal_host: http://flux-operator.flux-system.svc.cluster.local:9080
+          internal_host_ssl_validation: false
+      - model: authentik_core.application
+        id: flux-application
+        identifiers:
+          slug: flux
+        attrs:
+          name: Flux
+          provider: !KeyOf flux-proxy-provider
+      - model: authentik_outposts.outpost
+        identifiers:
+          managed: goauthentik.io/outposts/embedded
+        attrs:
+          providers:
+            - !KeyOf flux-proxy-provider

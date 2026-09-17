@@ -1,5 +1,7 @@
-# Flux Status web UI, read-only by default (no auth configured), LAN-only
-# via the internal Gateway.
+# Routed through Authentik's embedded outpost (a Proxy Provider protecting
+# flux.jenya.lol - see kubernetes/apps/authentik/authentik/app/blueprint-flux.yaml)
+# instead of straight to flux-operator. The outpost checks auth, then
+# proxies to flux-operator itself using its own internal_host config.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -13,5 +15,6 @@ spec:
     - flux.jenya.lol
   rules:
     - backendRefs:
-        - name: flux-operator
-          port: 9080
+        - name: authentik-server
+          namespace: authentik
+          port: 80

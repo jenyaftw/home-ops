@@ -6,6 +6,8 @@ resources:
   - ./postgres-role.yaml
   - ./postgres-database.yaml
   - ./authentik-secret.sops.yaml
+  - ./blueprint-flux.yaml
+  - ./referencegrant-flux.yaml
   - ./helmrepository.yaml
   - ./helmrelease.yaml
   - ./httproute.yaml

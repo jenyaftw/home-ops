@@ -40,7 +40,36 @@ spec:
         name: authentik
         user: authentik
         port: 5432
+    blueprints:
+      configMaps:
+        - authentik-blueprints
     server:
       replicas: 1
+      env:
+        - name: AUTHENTIK_BOOTSTRAP_EMAIL
+          value: me@jenya.lol
+        - name: AUTHENTIK_BOOTSTRAP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: authentik-secrets
+              key: bootstrap_password
+        - name: AUTHENTIK_BOOTSTRAP_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: authentik-secrets
+              key: bootstrap_token
     worker:
       replicas: 1
+      env:
+        - name: AUTHENTIK_BOOTSTRAP_EMAIL
+          value: me@jenya.lol
+        - name: AUTHENTIK_BOOTSTRAP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: authentik-secrets
+              key: bootstrap_password
+        - name: AUTHENTIK_BOOTSTRAP_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: authentik-secrets
+              key: bootstrap_token
