@@ -174,7 +174,7 @@ data "talos_machine_configuration" "controlplane" {
       volumeType = "disk"
       provisioning = {
         diskSelector = {
-          match = "disk.size > 150u * GiB"
+          match = "disk.size > 100u * GiB"
         }
       }
       filesystem = {
@@ -190,7 +190,7 @@ data "talos_machine_configuration" "controlplane" {
       name       = "openebs"
       provisioning = {
         volumeSelector = {
-          match = "disk.size > 50u * GiB && disk.size < 150u * GiB"
+          match = "disk.size > 68u * GiB && disk.size < 100u * GiB"
         }
       }
     })
@@ -232,7 +232,7 @@ data "talos_machine_configuration" "worker" {
       volumeType = "disk"
       provisioning = {
         diskSelector = {
-          match = "disk.size > 150u * GiB"
+          match = "disk.size > 100u * GiB"
         }
       }
       filesystem = {
@@ -248,7 +248,7 @@ data "talos_machine_configuration" "worker" {
       name       = "openebs"
       provisioning = {
         volumeSelector = {
-          match = "disk.size > 50u * GiB && disk.size < 150u * GiB"
+          match = "disk.size > 68u * GiB && disk.size < 100u * GiB"
         }
       }
     })
