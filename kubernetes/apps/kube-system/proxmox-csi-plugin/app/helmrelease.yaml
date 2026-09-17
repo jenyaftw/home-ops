@@ -20,11 +20,11 @@ spec:
       retries: 3
   values:
     existingConfigSecret: proxmox-csi-plugin
-    # Not marked default yet - Longhorn still holds that annotation until
-    # it's decommissioned, to avoid two default StorageClasses at once.
     storageClass:
       - name: proxmox-lvm
         storage: local-lvm
         reclaimPolicy: Delete
         fstype: ext4
         volumeBindingMode: WaitForFirstConsumer
+        annotations:
+          storageclass.kubernetes.io/is-default-class: "true"

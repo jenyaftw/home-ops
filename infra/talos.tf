@@ -166,32 +166,14 @@ data "talos_machine_configuration" "controlplane" {
       "$patch"   = "delete"
     }),
 
-    # Format and mount the extra data disk (not the boot disk) for Longhorn.
+    # Proxmox CSI plugin needs these to know where to place disks - see
+    # docs/install.md in sergelogvinov/proxmox-csi-plugin. Only one
+    # Proxmox host today, so every node gets the same zone.
     yamlencode({
       apiVersion = "v1alpha1"
-      kind       = "UserVolumeConfig"
-      name       = "longhorn"
-      volumeType = "disk"
-      provisioning = {
-        diskSelector = {
-          match = "disk.size > 100u * GiB"
-        }
-      }
-      filesystem = {
-        type = "ext4"
-      }
-    }),
-
-    # Create an LVM volume group on the second data disk for OpenEBS
-    # LVM-LocalPV to consume.
-    yamlencode({
-      apiVersion = "v1alpha1"
-      kind       = "LVMVolumeGroupConfig"
-      name       = "openebs"
-      provisioning = {
-        volumeSelector = {
-          match = "disk.size > 68u * GiB && disk.size < 100u * GiB"
-        }
+      kind       = "KubeletConfig"
+      extraArgs = {
+        node-labels = "topology.kubernetes.io/region=serenity,topology.kubernetes.io/zone=serenity-pve"
       }
     })
   ]
@@ -224,32 +206,14 @@ data "talos_machine_configuration" "worker" {
       "$patch"   = "delete"
     }),
 
-    # Format and mount the extra data disk (not the boot disk) for Longhorn.
+    # Proxmox CSI plugin needs these to know where to place disks - see
+    # docs/install.md in sergelogvinov/proxmox-csi-plugin. Only one
+    # Proxmox host today, so every node gets the same zone.
     yamlencode({
       apiVersion = "v1alpha1"
-      kind       = "UserVolumeConfig"
-      name       = "longhorn"
-      volumeType = "disk"
-      provisioning = {
-        diskSelector = {
-          match = "disk.size > 100u * GiB"
-        }
-      }
-      filesystem = {
-        type = "ext4"
-      }
-    }),
-
-    # Create an LVM volume group on the second data disk for OpenEBS
-    # LVM-LocalPV to consume.
-    yamlencode({
-      apiVersion = "v1alpha1"
-      kind       = "LVMVolumeGroupConfig"
-      name       = "openebs"
-      provisioning = {
-        volumeSelector = {
-          match = "disk.size > 68u * GiB && disk.size < 100u * GiB"
-        }
+      kind       = "KubeletConfig"
+      extraArgs = {
+        node-labels = "topology.kubernetes.io/region=serenity,topology.kubernetes.io/zone=serenity-pve"
       }
     })
   ]
