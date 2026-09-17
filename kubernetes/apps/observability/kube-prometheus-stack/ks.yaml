@@ -4,7 +4,10 @@ metadata:
   name: kube-prometheus-stack
   namespace: flux-system
 spec:
-  targetNamespace: observability
+  # No targetNamespace: this Kustomization spans both the observability
+  # namespace (the app itself) and the database namespace (Grafana's
+  # DatabaseRole/Database, which must live alongside the shared Cluster).
+  # Every resource here sets its own metadata.namespace explicitly.
   path: ./kubernetes/apps/observability/kube-prometheus-stack/app
   sourceRef:
     kind: GitRepository
@@ -14,6 +17,9 @@ spec:
   interval: 1h
   retryInterval: 1m
   timeout: 10m
+  dependsOn:
+    - name: postgres
+      namespace: flux-system
   decryption:
     provider: sops
     secretRef:

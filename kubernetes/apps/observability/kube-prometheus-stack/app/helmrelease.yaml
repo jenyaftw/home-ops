@@ -78,10 +78,27 @@ spec:
           cpu: 50m
           memory: 128Mi
         limits:
+          cpu: 500m
           memory: 256Mi
+      # Postgres instead of the chart's default sqlite - Grafana's newer
+      # "unified storage" subsystem (dashboards/folders/playlists as
+      # dashboard.grafana.app etc. resources) hammers sqlite with
+      # concurrent transactions, causing SQLITE_BUSY lock contention that
+      # pegs the CPU and times out requests. Postgres handles the
+      # concurrent writes fine.
       grafana.ini:
         server:
           root_url: https://grafana.jenya.lol/
+        database:
+          type: postgres
+          host: postgres-rw.database.svc.cluster.local:5432
+          name: grafana
+          user: grafana
+      envValueFrom:
+        GF_DATABASE_PASSWORD:
+          secretKeyRef:
+            name: grafana-postgres-credentials
+            key: password
       additionalDataSources:
         - name: Loki
           type: loki

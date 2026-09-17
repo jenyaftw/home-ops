@@ -3,6 +3,10 @@ kind: Kustomization
 resources:
   - ./namespace.yaml
   - ./grafana-secret.sops.yaml
+  - ./postgres-secret.sops.yaml
+  - ./postgres-role.yaml
+  - ./postgres-database.yaml
+  - ./grafana-postgres-secret.sops.yaml
   - ./helmrepository.yaml
   - ./helmrelease.yaml
   - ./httproute.yaml
