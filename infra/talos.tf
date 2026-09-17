@@ -140,6 +140,17 @@ data "talos_machine_configuration" "controlplane" {
       machine = {
         install = null
       }
+    }),
+
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeNodeConfig"
+
+      taints = {
+        "node-role.kubernetes.io/control-plane" = {
+          "$patch" = "delete"
+        }
+      }
     })
   ]
 }
