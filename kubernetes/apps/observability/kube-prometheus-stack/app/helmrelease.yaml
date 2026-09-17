@@ -73,6 +73,12 @@ spec:
         enabled: true
         storageClassName: proxmox-lvm
         size: 5Gi
+      # The default RollingUpdate strategy deadlocks with a single RWO PVC:
+      # the new pod waits forever to attach a volume the old pod (mid
+      # rolling-update, not yet terminated) still holds. Learned this the
+      # hard way during the Postgres migration below.
+      deploymentStrategy:
+        type: Recreate
       resources:
         requests:
           cpu: 50m
