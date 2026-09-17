@@ -1,0 +1,12 @@
+# Shared by every app in kubernetes/apps/default - each app's HelmRelease
+# references this one OCIRepository instead of declaring its own.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: app-template
+  namespace: default
+spec:
+  interval: 1h
+  url: oci://ghcr.io/bjw-s-labs/helm/app-template
+  ref:
+    semver: "5.2.x"
