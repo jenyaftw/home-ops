@@ -1,0 +1,25 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: metrics-server
+      version: "3.x"
+      sourceRef:
+        kind: HelmRepository
+        name: metrics-server
+        namespace: kube-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    # Talos kubelet serving certs aren't signed by a CA metrics-server trusts.
+    args:
+      - --kubelet-insecure-tls
