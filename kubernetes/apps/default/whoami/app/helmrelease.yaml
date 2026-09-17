@@ -42,6 +42,11 @@ spec:
     route:
       main:
         kind: HTTPRoute
+        # external-dns only publishes a public Cloudflare record for
+        # HTTPRoutes carrying this label - a deliberate opt-in so internal-
+        # only apps never get published by accident.
+        labels:
+          external-dns.io/enabled: "true"
         hostnames:
           - whoami.jenya.lol
         parentRefs:

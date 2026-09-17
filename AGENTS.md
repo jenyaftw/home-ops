@@ -128,3 +128,8 @@ touch these areas again:
   (`tolerationSeconds: 300` on the default `not-ready`/`unreachable`
   tolerations). A brief blip just resumes the same pod in place; only a
   sustained outage triggers a reschedule elsewhere.
+- **`external-dns` (Cloudflare/public) only syncs HTTPRoutes labeled
+  `external-dns.io/enabled: "true"`** - a deliberate opt-in gate so
+  internal-only apps never get a public DNS record by accident.
+  `external-dns-pihole` (LAN-only) has no such filter and syncs every
+  route on the `internal` Gateway unconditionally.

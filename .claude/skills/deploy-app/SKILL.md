@@ -100,6 +100,13 @@ cluster's overall conventions - this skill only covers the app scaffold.
              - backendRefs:
                  - identifier: main
                    port: 80
+           # Required on the "external" gateway only - external-dns
+           # (Cloudflare) is opt-in and ignores routes without this label,
+           # so public DNS records don't get created by accident. Not
+           # needed for "internal" - external-dns-pihole syncs every route
+           # on that gateway unconditionally.
+           # labels:
+           #   external-dns.io/enabled: "true"
 
        # Only if the app needs persistent storage.
        persistence:
@@ -114,7 +121,9 @@ cluster's overall conventions - this skill only covers the app scaffold.
 
    Use `parentRefs: [{name: external, namespace: kube-system}]` instead
    (or in addition) if the app needs to be reachable from outside the LAN
-   - remember the external Gateway is Cloudflare-proxied only.
+   - remember the external Gateway is Cloudflare-proxied only, and to add
+     the `external-dns.io/enabled: "true"` label above so external-dns
+     actually publishes it.
 
 4. **`app/kustomization.yaml`**:
 
