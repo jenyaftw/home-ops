@@ -79,13 +79,16 @@ spec:
       # hard way during the Postgres migration below.
       deploymentStrategy:
         type: Recreate
+      # 256Mi limit was too tight - OOMKilled as soon as the dashboards
+      # list page triggered its search/index building (bleve indexing
+      # dashboards/folders/playlists for the unified storage subsystem).
       resources:
         requests:
           cpu: 50m
-          memory: 128Mi
+          memory: 256Mi
         limits:
           cpu: 500m
-          memory: 256Mi
+          memory: 512Mi
       # Postgres instead of the chart's default sqlite - Grafana's newer
       # "unified storage" subsystem (dashboards/folders/playlists as
       # dashboard.grafana.app etc. resources) hammers sqlite with
