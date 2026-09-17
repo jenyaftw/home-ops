@@ -1,0 +1,17 @@
+# LAN-only: attaches to the internal Gateway alone. external-dns-pihole
+# (scoped to that Gateway) creates the Pihole record automatically.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: flux-operator-mcp
+  namespace: flux-system
+spec:
+  parentRefs:
+    - name: internal
+      namespace: kube-system
+  hostnames:
+    - flux-mcp.jenya.lol
+  rules:
+    - backendRefs:
+        - name: flux-operator-mcp
+          port: 9090

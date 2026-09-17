@@ -1,0 +1,46 @@
+# Migrated from `flux bootstrap` on 2026-09-17 - see
+# https://fluxoperator.dev/docs/guides/operator/operator-migration/
+#
+# spec.kustomize.patches forces prune: false on the generated flux-system
+# Kustomization. Without it, removing the old gotk-components.yaml/
+# gotk-sync.yaml from git during migration would make kustomize-controller
+# try to delete Flux's own CRDs and controller Deployments, since its prune
+# inventory still remembered applying them from before the operator took
+# over. This Kustomization's scope is tiny (just this directory) and rarely
+# changes, so losing automatic pruning here is a reasonable permanent
+# trade-off for never repeating that risk.
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    version: "2.9.x"
+    registry: "ghcr.io/fluxcd"
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: kubernetes
+    multitenant: false
+    networkPolicy: true
+    domain: "cluster.local"
+  kustomize:
+    patches:
+      - target:
+          kind: Kustomization
+          name: flux-system
+          namespace: flux-system
+        patch: |
+          - op: replace
+            path: /spec/prune
+            value: false
+  sync:
+    kind: GitRepository
+    url: "ssh://git@github.com/jenyaftw/home-ops.git"
+    ref: "refs/heads/main"
+    path: "kubernetes/flux/cluster"
+    pullSecret: "flux-system"

@@ -6,3 +6,4 @@ resources:
   - ./gateway-api-crds/ks.yaml
   - ./gateway/ks.yaml
   - ./flux-webhook/ks.yaml
+  - ./flux-operator-mcp/ks.yaml

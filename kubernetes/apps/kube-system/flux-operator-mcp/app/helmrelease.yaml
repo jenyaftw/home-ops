@@ -1,0 +1,28 @@
+# Runs with a cluster-admin service account regardless of readonly (the
+# chart's own RBAC, not something this repo controls) - readonly disables
+# the mutating MCP tools at the application layer. LAN-only exposure via
+# the internal Gateway keeps the blast radius to trusted devices.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: flux-operator-mcp
+  namespace: flux-system
+spec:
+  interval: 30m
+  releaseName: flux-operator-mcp
+  chartRef:
+    kind: OCIRepository
+    name: flux-operator-mcp
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    transport: http
+    readonly: true
+    networkPolicy:
+      create: true
+      ingress:
+        namespaces: ["kube-system"]
