@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: external-dns
+  name: external-dns-pihole
   namespace: external-dns
 spec:
   interval: 1h
@@ -14,7 +14,6 @@ spec:
         name: external-dns
         namespace: external-dns
   install:
-    createNamespace: true
     remediation:
       retries: 3
   upgrade:
@@ -22,24 +21,22 @@ spec:
       retries: 3
   values:
     provider:
-      name: cloudflare
+      name: pihole
     env:
-      - name: CF_API_TOKEN
+      - name: EXTERNAL_DNS_PIHOLE_PASSWORD
         valueFrom:
           secretKeyRef:
-            name: cloudflare-api-token
-            key: token
+            name: pihole-app-password
+            key: password
     extraArgs:
-      - --cloudflare-dns-records-per-page=1000
-      # Only ever resolve targets from the external Gateway - the internal
-      # Gateway's address is a private LAN IP and must never end up in a
-      # public Cloudflare record.
-      - --gateway-name=external
+      - --pihole-server=http://10.0.10.30
+      # Pihole only supports A/AAAA/CNAME - no TXT ownership records possible.
+      - --gateway-name=internal
       - --gateway-namespace=kube-system
-    domainFilters: ["jenya.lol"]
-    policy: sync
-    registry: txt
-    txtOwnerId: serenity
+    registry: noop
+    # Never delete records we didn't create - safe if anything is ever
+    # added to Pihole by hand.
+    policy: upsert-only
     sources:
       - gateway-httproute
     interval: 1m
