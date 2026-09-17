@@ -1,0 +1,23 @@
+# cilium-envoy runs with hostNetwork: true, so Gateway-proxied traffic
+# reaches this pod under Cilium's reserved "host" and "ingress" identities,
+# not a normal pod/namespace identity - the chart's own NetworkPolicy
+# (namespace-selector based) can never match it. This CiliumNetworkPolicy
+# adds what's actually needed for Gateway API traffic to reach the pod.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: flux-operator-mcp-gateway
+  namespace: flux-system
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: flux-operator-mcp
+      app.kubernetes.io/name: flux-operator-mcp
+  ingress:
+    - fromEntities:
+        - host
+        - ingress
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
