@@ -1,0 +1,24 @@
+# Same hostname on both Gateways: true split-horizon. Pihole (manually
+# configured) resolves podinfo.jenya.lol to the internal Gateway on the LAN;
+# Cloudflare's public record (managed by cloudflare-ddns) resolves it to your
+# public IP for everyone else. external-dns must not manage this hostname -
+# both paths are already owned by Pihole/cloudflare-ddns respectively.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: podinfo
+  namespace: podinfo
+  annotations:
+    external-dns.kubernetes.io/controller: ignore
+spec:
+  parentRefs:
+    - name: internal
+      namespace: kube-system
+    - name: external
+      namespace: kube-system
+  hostnames:
+    - podinfo.jenya.lol
+  rules:
+    - backendRefs:
+        - name: podinfo
+          port: 9898

@@ -1,0 +1,35 @@
+# Internet-facing Gateway. Port-forward your router's 80/443 to
+# 10.0.10.201 to expose *.jenya.lol routes attached to this Gateway.
+# Traffic is restricted to Cloudflare's IP ranges via CiliumGatewayClassConfig
+# "external", so make sure the public hostname is Cloudflare-proxied (orange
+# cloud) - see the cloudflare-ddns app.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: external
+  namespace: kube-system
+spec:
+  gatewayClassName: cilium-external
+  addresses:
+    - type: IPAddress
+      value: 10.0.10.201
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      hostname: "*.jenya.lol"
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: "*.jenya.lol"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: wildcard-jenya-lol-tls
+      allowedRoutes:
+        namespaces:
+          from: All

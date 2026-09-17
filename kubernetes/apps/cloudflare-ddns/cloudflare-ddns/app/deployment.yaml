@@ -1,0 +1,47 @@
+# Keeps jenya.lol and *.jenya.lol A records in sync with this network's
+# public IP. Proxied via Cloudflare so the origin IP stays hidden and the
+# external Gateway's Cloudflare-only IP allowlist stays meaningful.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflare-ddns
+  namespace: cloudflare-ddns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudflare-ddns
+  template:
+    metadata:
+      labels:
+        app: cloudflare-ddns
+    spec:
+      containers:
+        - name: cloudflare-ddns
+          image: favonia/cloudflare-ddns:1
+          env:
+            - name: DOMAINS
+              value: "jenya.lol,*.jenya.lol"
+            - name: PROXIED
+              value: "true"
+            - name: IP6_PROVIDER
+              value: "none"
+            - name: CLOUDFLARE_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare-api-token
+                  key: token
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi

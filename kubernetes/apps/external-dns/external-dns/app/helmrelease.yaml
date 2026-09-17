@@ -36,6 +36,6 @@ spec:
     registry: txt
     txtOwnerId: serenity
     sources:
-      - ingress
+      - gateway-httproute
     interval: 1m
     triggerLoopOnEvent: true

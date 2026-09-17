@@ -47,3 +47,6 @@ spec:
 
     externalIPs:
       enabled: true
+
+    gatewayAPI:
+      enabled: true

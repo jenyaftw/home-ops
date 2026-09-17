@@ -1,0 +1,34 @@
+# LAN-only Gateway. Pihole is manually configured (outside this repo) to
+# resolve *.jenya.lol to this Gateway's address for clients on the LAN.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: internal
+  namespace: kube-system
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+spec:
+  gatewayClassName: cilium
+  addresses:
+    - type: IPAddress
+      value: 10.0.10.200
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      hostname: "*.jenya.lol"
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: "*.jenya.lol"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: wildcard-jenya-lol-tls
+      allowedRoutes:
+        namespaces:
+          from: All

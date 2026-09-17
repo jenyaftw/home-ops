@@ -1,11 +1,11 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: ingress-nginx
+  name: gateway
   namespace: flux-system
 spec:
-  targetNamespace: ingress-nginx
-  path: ./kubernetes/apps/ingress-nginx/ingress-nginx/app
+  targetNamespace: kube-system
+  path: ./kubernetes/apps/kube-system/gateway/app
   sourceRef:
     kind: GitRepository
     name: flux-system
@@ -16,4 +16,8 @@ spec:
   timeout: 5m
   dependsOn:
     - name: cilium
+      namespace: flux-system
+    - name: gateway-api-crds
+      namespace: flux-system
+    - name: cert-manager
       namespace: flux-system
