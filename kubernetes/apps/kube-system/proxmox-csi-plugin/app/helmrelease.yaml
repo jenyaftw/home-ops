@@ -1,0 +1,30 @@
+# No nodeSelector/tolerations needed - the control-plane taint was already
+# removed from all 3 nodes (see infra/talos.tf KubeNodeConfig), so both the
+# controller and the per-node daemonset schedule everywhere by default.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: proxmox-csi-plugin
+  namespace: csi-proxmox
+spec:
+  interval: 1h
+  releaseName: proxmox-csi-plugin
+  chartRef:
+    kind: OCIRepository
+    name: proxmox-csi-plugin
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    existingConfigSecret: proxmox-csi-plugin
+    # Not marked default yet - Longhorn still holds that annotation until
+    # it's decommissioned, to avoid two default StorageClasses at once.
+    storageClass:
+      - name: proxmox-lvm
+        storage: local-lvm
+        reclaimPolicy: Delete
+        fstype: ext4
+        volumeBindingMode: WaitForFirstConsumer

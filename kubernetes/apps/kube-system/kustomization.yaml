@@ -4,6 +4,7 @@ resources:
   - ./cilium/ks.yaml
   - ./longhorn/ks.yaml
   - ./openebs-lvmlocalpv/ks.yaml
+  - ./proxmox-csi-plugin/ks.yaml
   - ./cloudnative-pg/ks.yaml
   - ./metrics-server/ks.yaml
   - ./gateway-api-crds/ks.yaml
