@@ -33,6 +33,13 @@ spec:
     alertmanager:
       enabled: false
 
+    # Talos binds these static pods' metrics to 127.0.0.1 only, by design -
+    # they're never reachable from other pods, so don't bother scraping.
+    kubeControllerManager:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+
     prometheus:
       prometheusSpec:
         retention: 10d
