@@ -1,0 +1,20 @@
+# NOTE: verify 10.0.10.200-10.0.10.220 doesn't overlap your DHCP scope on VLAN 10.
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: default
+spec:
+  blocks:
+    - start: 10.0.10.200
+      stop: 10.0.10.220
+---
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: default
+spec:
+  loadBalancerIPs: true
+  interfaces:
+    - ^eth[0-9]+
+    - ^ens[0-9]+
+  nodeSelector: {}

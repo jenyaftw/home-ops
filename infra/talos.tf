@@ -151,6 +151,19 @@ data "talos_machine_configuration" "controlplane" {
           "$patch" = "delete"
         }
       }
+    }),
+
+    # Cilium replaces kube-proxy and the built-in Flannel CNI.
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeProxyConfig"
+      enabled    = false
+    }),
+
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeFlannelCNIConfig"
+      "$patch"   = "delete"
     })
   ]
 }
@@ -167,6 +180,19 @@ data "talos_machine_configuration" "worker" {
       machine = {
         install = null
       }
+    }),
+
+    # Cilium replaces kube-proxy and the built-in Flannel CNI.
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeProxyConfig"
+      enabled    = false
+    }),
+
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeFlannelCNIConfig"
+      "$patch"   = "delete"
     })
   ]
 }

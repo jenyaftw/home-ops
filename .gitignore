@@ -14,3 +14,7 @@ kubeconfig
 talosconfig
 *.kubeconfig
 *.talosconfig
+
+# SOPS/age keys - never commit the private key
+age.key
+*.agekey
