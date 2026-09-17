@@ -164,6 +164,22 @@ data "talos_machine_configuration" "controlplane" {
       apiVersion = "v1alpha1"
       kind       = "KubeFlannelCNIConfig"
       "$patch"   = "delete"
+    }),
+
+    # Format and mount the extra data disk (not the boot disk) for Longhorn.
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "UserVolumeConfig"
+      name       = "longhorn"
+      volumeType = "disk"
+      provisioning = {
+        diskSelector = {
+          match = "disk.size > 100u * GiB"
+        }
+      }
+      filesystem = {
+        type = "ext4"
+      }
     })
   ]
 }
@@ -193,6 +209,22 @@ data "talos_machine_configuration" "worker" {
       apiVersion = "v1alpha1"
       kind       = "KubeFlannelCNIConfig"
       "$patch"   = "delete"
+    }),
+
+    # Format and mount the extra data disk (not the boot disk) for Longhorn.
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "UserVolumeConfig"
+      name       = "longhorn"
+      volumeType = "disk"
+      provisioning = {
+        diskSelector = {
+          match = "disk.size > 100u * GiB"
+        }
+      }
+      filesystem = {
+        type = "ext4"
+      }
     })
   ]
 }
