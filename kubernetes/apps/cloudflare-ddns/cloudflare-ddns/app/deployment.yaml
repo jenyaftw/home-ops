@@ -1,6 +1,8 @@
-# Keeps jenya.lol and *.jenya.lol A records in sync with this network's
-# public IP. Proxied via Cloudflare so the origin IP stays hidden and the
-# external Gateway's Cloudflare-only IP allowlist stays meaningful.
+# Keeps jenya.lol's A record in sync with this network's public IP. Every
+# public app gets its own CNAME onto jenya.lol via external-dns instead of
+# a wildcard - see the external Gateway's target annotation. Proxied via
+# Cloudflare so the origin IP stays hidden and the external Gateway's
+# Cloudflare-only IP allowlist stays meaningful.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,7 +23,7 @@ spec:
           image: favonia/cloudflare-ddns:1
           env:
             - name: DOMAINS
-              value: "jenya.lol,*.jenya.lol"
+              value: "jenya.lol"
             - name: PROXIED
               value: "true"
             - name: IP6_PROVIDER

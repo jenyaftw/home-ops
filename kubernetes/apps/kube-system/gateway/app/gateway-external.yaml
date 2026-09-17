@@ -3,11 +3,19 @@
 # Traffic is restricted to Cloudflare's IP ranges via CiliumGatewayClassConfig
 # "external", so make sure the public hostname is Cloudflare-proxied (orange
 # cloud) - see the cloudflare-ddns app.
+#
+# external-dns.kubernetes.io/target overrides the resolved target for every
+# route attached to this Gateway - without it, external-dns would publish
+# this Gateway's own address (10.0.10.201, a private LAN IP, useless
+# publicly). Routes get a CNAME to jenya.lol instead, which cloudflare-ddns
+# keeps pointed at this network's current public IP.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: external
   namespace: kube-system
+  annotations:
+    external-dns.kubernetes.io/target: jenya.lol
 spec:
   gatewayClassName: cilium-external
   addresses:

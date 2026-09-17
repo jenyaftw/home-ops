@@ -32,14 +32,19 @@ spec:
     extraArgs:
       - --cloudflare-dns-records-per-page=1000
       # Only ever resolve targets from the external Gateway - the internal
-      # Gateway's address is a private LAN IP and must never end up in a
-      # public Cloudflare record.
+      # Gateway's address is a private LAN IP. The Gateway's own
+      # external-dns.kubernetes.io/target annotation overrides this to a
+      # CNAME onto jenya.lol (kept in sync with the public IP by
+      # cloudflare-ddns), so a private IP never actually ends up published.
       - --gateway-name=external
       - --gateway-namespace=kube-system
+      # Cloudflare must proxy these or the CiliumGatewayClassConfig's
+      # Cloudflare-only IP allowlist would block real client traffic.
+      - --cloudflare-proxied
     domainFilters: ["jenya.lol"]
-    # Opt-in only: most apps ride the cloudflare-ddns wildcard record
-    # instead. Only resources explicitly labeled this way get their own
-    # dedicated Cloudflare record.
+    # Opt-in only: apps need this label to get their own dedicated
+    # Cloudflare record (a CNAME onto jenya.lol - see the external
+    # Gateway's target annotation).
     labelFilter: external-dns.io/enabled=true
     policy: sync
     registry: txt
