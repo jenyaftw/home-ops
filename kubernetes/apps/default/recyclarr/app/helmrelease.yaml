@@ -77,9 +77,18 @@ spec:
             image:
               repository: ghcr.io/recyclarr/recyclarr
               tag: "8"
+            # recyclarr groups instances that share a base_url and silently
+            # no-ops the whole group instead of syncing either one
+            # (confirmed live) - running each Sonarr instance with its own
+            # -i flag avoids the bug entirely, even though both are in the
+            # same config file.
             command:
-              - recyclarr
-              - sync
+              - sh
+              - -c
+              - |
+                recyclarr sync radarr &&
+                recyclarr sync sonarr -i tv &&
+                recyclarr sync sonarr -i anime
             envFrom:
               - secretRef:
                   name: recyclarr-secrets
