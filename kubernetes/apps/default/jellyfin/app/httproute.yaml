@@ -1,0 +1,23 @@
+# Same hostname on both Gateways: true split-horizon, same as podinfo.
+# Routed through Authentik's embedded outpost (like flux/grafana)
+# instead of straight to jellyfin - see the authentik blueprint.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: jellyfin
+  namespace: default
+  labels:
+    external-dns.io/enabled: "true"
+spec:
+  parentRefs:
+    - name: internal
+      namespace: kube-system
+    - name: external
+      namespace: kube-system
+  hostnames:
+    - jellyfin.jenya.lol
+  rules:
+    - backendRefs:
+        - name: authentik-server
+          namespace: authentik
+          port: 80

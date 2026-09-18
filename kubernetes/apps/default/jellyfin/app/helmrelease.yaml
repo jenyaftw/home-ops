@@ -1,0 +1,126 @@
+# Same rclone-sidecar pattern as radarr/sonarr, so Jellyfin can stream
+# both the existing NAS library (/media) and anything grabbed through
+# zurg (/data) - add both as separate Libraries in Jellyfin's own setup
+# wizard/dashboard, that part isn't declarative.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: jellyfin
+  namespace: default
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    configMaps:
+      rclone-conf:
+        data:
+          rclone.conf: |
+            [zurg]
+            type = webdav
+            url = http://zurg.default.svc.cluster.local:9999/dav/
+            vendor = other
+            pacer_min_sleep = 0
+
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: jellyfin/jellyfin
+              tag: latest
+            env:
+              TZ: Etc/UTC
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 4Gi
+
+          rclone:
+            image:
+              repository: rclone/rclone
+              tag: latest
+            command:
+              - rclone
+              - mount
+              - "zurg:"
+              - /data
+              - --allow-other
+              - --allow-non-empty
+              - --dir-cache-time
+              - 10s
+            securityContext:
+              privileged: true
+              capabilities:
+                add: ["SYS_ADMIN"]
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8096
+
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        storageClass: proxmox-lvm
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        advancedMounts:
+          main:
+            main:
+              - path: /config
+
+      media:
+        type: nfs
+        server: 10.0.10.20
+        path: /media
+        advancedMounts:
+          main:
+            main:
+              - path: /media
+
+      cache:
+        type: emptyDir
+        advancedMounts:
+          main:
+            main:
+              - path: /cache
+
+      rclone-conf:
+        type: configMap
+        identifier: rclone-conf
+        advancedMounts:
+          main:
+            rclone:
+              - path: /config/rclone/rclone.conf
+                subPath: rclone.conf
+                readOnly: true
+
+      debrid:
+        type: emptyDir
+        advancedMounts:
+          main:
+            main:
+              - path: /data
+                mountPropagation: HostToContainer
+            rclone:
+              - path: /data
+                mountPropagation: Bidirectional

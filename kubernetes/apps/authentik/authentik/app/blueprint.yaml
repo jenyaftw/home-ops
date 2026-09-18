@@ -72,6 +72,25 @@ data:
         attrs:
           name: Grafana
           provider: !KeyOf grafana-proxy-provider
+      - model: authentik_providers_proxy.proxyprovider
+        id: jellyfin-proxy-provider
+        identifiers:
+          name: jellyfin-proxy
+        attrs:
+          authentication_flow: !KeyOf default-authentication-flow
+          authorization_flow: !KeyOf default-authorization-flow
+          invalidation_flow: !KeyOf default-invalidation-flow
+          mode: proxy
+          external_host: https://jellyfin.jenya.lol
+          internal_host: http://jellyfin.default.svc.cluster.local:8096
+          internal_host_ssl_validation: false
+      - model: authentik_core.application
+        id: jellyfin-application
+        identifiers:
+          slug: jellyfin
+        attrs:
+          name: Jellyfin
+          provider: !KeyOf jellyfin-proxy-provider
       - model: authentik_outposts.outpost
         identifiers:
           managed: goauthentik.io/outposts/embedded
@@ -79,3 +98,4 @@ data:
           providers:
             - !KeyOf flux-proxy-provider
             - !KeyOf grafana-proxy-provider
+            - !KeyOf jellyfin-proxy-provider
