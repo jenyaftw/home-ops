@@ -76,7 +76,7 @@ spec:
           main:
             image:
               repository: ghcr.io/recyclarr/recyclarr
-              tag: latest
+              tag: "8"
             command:
               - recyclarr
               - sync
