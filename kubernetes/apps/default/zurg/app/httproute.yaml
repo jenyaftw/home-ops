@@ -1,5 +1,5 @@
-# zurg has no real dashboard - this just exposes its browsable HTTP/
-# WebDAV directory listing so the library can be checked in a browser.
+# Dashboard lives at /config/ (torrent management, tags, IMDB IDs,
+# etc.) - a nightly-only feature.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
