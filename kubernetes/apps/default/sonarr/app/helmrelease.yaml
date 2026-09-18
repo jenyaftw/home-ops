@@ -50,6 +50,10 @@ spec:
             image:
               repository: rclone/rclone
               tag: latest
+            # vfs-cache-mode full hangs readdir on this WebDAV backend
+            # (confirmed live: stat() returns instantly, ls() never does).
+            # Full caching also works against the point of a virtual
+            # debrid mount anyway - leave it off (rclone's default).
             command:
               - rclone
               - mount
@@ -59,8 +63,6 @@ spec:
               - --allow-non-empty
               - --dir-cache-time
               - 10s
-              - --vfs-cache-mode
-              - full
             securityContext:
               privileged: true
               capabilities:
@@ -126,8 +128,12 @@ spec:
         type: emptyDir
         advancedMounts:
           main:
+            # HostToContainer is required on this side too - without it,
+            # "main" never receives the mount "rclone" propagates out via
+            # Bidirectional, and just sees the empty directory underneath.
             main:
               - path: /data
+                mountPropagation: HostToContainer
             rclone:
               - path: /data
                 mountPropagation: Bidirectional
