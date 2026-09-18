@@ -29,12 +29,18 @@ spec:
             env:
               TZ: Etc/UTC
               LOG_LEVEL: info
+            # Each Cloudflare challenge-solve runs a real headless Chromium
+            # instance for ~10-12s. Observed 767Mi used from a handful of
+            # sequential test requests alone - a 1Gi limit gets OOMKilled
+            # under concurrent solves (Prowlarr searches indexers in
+            # parallel), causing intermittent failures.
             resources:
               requests:
-                cpu: 50m
-                memory: 256Mi
+                cpu: 100m
+                memory: 512Mi
               limits:
-                memory: 1Gi
+                cpu: "2"
+                memory: 3Gi
 
     service:
       main:
