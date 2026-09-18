@@ -133,3 +133,15 @@ touch these areas again:
   internal-only apps never get a public DNS record by accident.
   `external-dns-pihole` (LAN-only) has no such filter and syncs every
   route on the `internal` Gateway unconditionally.
+- **A FUSE mount created in a sidecar container needs propagation set on
+  *both* sides to become visible in the main container**: the sidecar's
+  volumeMount needs `mountPropagation: Bidirectional`, and the main
+  container's mount of that same volume needs `mountPropagation:
+  HostToContainer`. Setting only one side leaves the main container
+  seeing the empty directory underneath instead of the mount.
+- **rclone's `--vfs-cache-mode full` can hang `readdir()` indefinitely on
+  a WebDAV backend** while `stat()` on the same path returns instantly -
+  a confusing partial-hang, not an outright failure. It also works
+  against the point of a virtual/debrid mount (it eagerly caches file
+  contents locally). Leave VFS caching off unless you have a specific
+  reason to need it.
