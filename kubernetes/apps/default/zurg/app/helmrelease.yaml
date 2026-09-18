@@ -1,7 +1,9 @@
-# Presents the Real-Debrid library as a WebDAV server. Radarr/Sonarr don't
-# talk to this directly - their rclone sidecars mount it. Free public
-# stable image, no Patreon/sponsorship needed (that's only for zurg's
-# nightly builds with extra debrid backends).
+# Presents the Real-Debrid library as WebDAV (9999, mounted by radarr/
+# sonarr's rclone sidecars) and as a qBittorrent-compatible API (9995,
+# added as a Download Client directly in radarr/sonarr - see
+# config.yml's magic/qbittorrent blocks). Free public stable image, no
+# Patreon/sponsorship needed (that's only for zurg's nightly builds with
+# extra debrid backends).
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -40,6 +42,8 @@ spec:
         ports:
           http:
             port: 9999
+          qbittorrent:
+            port: 9995
 
     persistence:
       config:
