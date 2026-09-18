@@ -39,8 +39,23 @@ spec:
             role = "pod"
           }
 
+          // Without this, every replica of this DaemonSet discovers and
+          // tails ALL pods cluster-wide instead of just its own node's -
+          // triple-ingesting every log line into Loki and overloading
+          // each Alloy instance badly enough to fail its own readiness
+          // probe.
+          discovery.relabel "local_pods" {
+            targets = discovery.kubernetes.pods.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_node_name"]
+              regex         = env("K8S_NODE_NAME")
+              action        = "keep"
+            }
+          }
+
           loki.source.kubernetes "pods" {
-            targets    = discovery.kubernetes.pods.targets
+            targets    = discovery.relabel.local_pods.output
             forward_to = [loki.write.default.receiver]
           }
 
