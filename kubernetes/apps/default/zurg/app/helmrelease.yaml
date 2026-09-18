@@ -1,7 +1,7 @@
-# Presents the Real-Debrid library as WebDAV (9999, mounted by radarr/
-# sonarr's rclone sidecars) and as a qBittorrent-compatible API (9995,
-# added as a Download Client directly in radarr/sonarr - see
-# config.yml's magic/qbittorrent blocks).
+# Presents the Real-Debrid library as WebDAV (mounted by radarr/sonarr's
+# rclone sidecars) and, on the same port under /api/v2, a qBittorrent-
+# compatible API added as a Download Client directly in radarr/sonarr -
+# see config.yml's magic/qbittorrent blocks.
 #
 # The magic/qbittorrent feature only exists in zurg's nightly builds,
 # which are gated behind an active Patreon/GitHub Sponsors subscription
@@ -50,8 +50,6 @@ spec:
         ports:
           http:
             port: 9999
-          qbittorrent:
-            port: 9995
 
     persistence:
       config:
