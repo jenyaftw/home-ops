@@ -1,0 +1,58 @@
+# Presents the Real-Debrid library as a WebDAV server. Radarr/Sonarr don't
+# talk to this directly - their rclone sidecars mount it. Free public
+# stable image, no Patreon/sponsorship needed (that's only for zurg's
+# nightly builds with extra debrid backends).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: zurg
+  namespace: default
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/debridmediamanager/zurg-public
+              tag: latest
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 9999
+
+    persistence:
+      config:
+        type: secret
+        name: zurg-config
+        globalMounts:
+          - path: /app/config.yml
+            subPath: config.yml
+            readOnly: true
+      data:
+        type: persistentVolumeClaim
+        storageClass: proxmox-lvm
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        globalMounts:
+          - path: /app/data

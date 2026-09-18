@@ -1,0 +1,11 @@
+# "default" already exists in every cluster - this just adds the labels
+# rclone sidecars need (CAP_SYS_ADMIN + /dev/fuse for FUSE mounts, same
+# reasoning as csi-proxmox/observability).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: default
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged

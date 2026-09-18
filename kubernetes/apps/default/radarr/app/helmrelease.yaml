@@ -1,0 +1,135 @@
+# The rclone sidecar mounts zurg's WebDAV (the Real-Debrid library) via
+# FUSE into a shared emptyDir, so radarr sees it as a local directory at
+# /data. Needs privileged (CAP_SYS_ADMIN + /dev/fuse) - see AGENTS.md for
+# why the default namespace allows this.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: radarr
+  namespace: default
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    configMaps:
+      rclone-conf:
+        data:
+          rclone.conf: |
+            [zurg]
+            type = webdav
+            url = http://zurg.default.svc.cluster.local:9999/dav/
+            vendor = other
+            pacer_min_sleep = 0
+
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: lscr.io/linuxserver/radarr
+              tag: latest
+            env:
+              TZ: Etc/UTC
+              PUID: "1000"
+              PGID: "1000"
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+
+          rclone:
+            image:
+              repository: rclone/rclone
+              tag: latest
+            command:
+              - rclone
+              - mount
+              - "zurg:"
+              - /data
+              - --allow-other
+              - --allow-non-empty
+              - --dir-cache-time
+              - 10s
+              - --vfs-cache-mode
+              - full
+            securityContext:
+              privileged: true
+              capabilities:
+                add: ["SYS_ADMIN"]
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 7878
+
+    route:
+      main:
+        kind: HTTPRoute
+        hostnames:
+          - radarr.jenya.lol
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 7878
+
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        storageClass: proxmox-lvm
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        advancedMounts:
+          main:
+            main:
+              - path: /config
+
+      media:
+        type: nfs
+        server: 10.0.10.20
+        path: /media
+        advancedMounts:
+          main:
+            main:
+              - path: /media
+
+      rclone-conf:
+        type: configMap
+        identifier: rclone-conf
+        advancedMounts:
+          main:
+            rclone:
+              - path: /config/rclone/rclone.conf
+                subPath: rclone.conf
+                readOnly: true
+
+      debrid:
+        type: emptyDir
+        advancedMounts:
+          main:
+            main:
+              - path: /data
+            rclone:
+              - path: /data
+                mountPropagation: Bidirectional

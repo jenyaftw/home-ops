@@ -3,3 +3,7 @@ kind: Kustomization
 resources:
   - ./app-template/ks.yaml
   - ./whoami/ks.yaml
+  - ./zurg/ks.yaml
+  - ./radarr/ks.yaml
+  - ./sonarr/ks.yaml
+  - ./prowlarr/ks.yaml
