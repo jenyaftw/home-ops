@@ -124,3 +124,16 @@ spec:
             rclone:
               - path: /data
                 mountPropagation: Bidirectional
+
+      # Intel QuickSync (VAAPI) hardware transcoding - talos-cp1 has the
+      # iGPU passed through (see infra/talos.tf gpu_passthrough). Main
+      # container already runs as root, so no group/supplementalGroups
+      # dance needed to read the render node's permissions.
+      render:
+        type: hostPath
+        hostPath: /dev/dri
+        hostPathType: Directory
+        advancedMounts:
+          main:
+            main:
+              - path: /dev/dri
