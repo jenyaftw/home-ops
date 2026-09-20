@@ -39,6 +39,14 @@ spec:
               tag: latest
             env:
               TZ: Etc/UTC
+            # A hostPath mount alone only makes /dev/dri visible in the
+            # filesystem - the container's device cgroup whitelist still
+            # blocks actually opening it ("Operation not permitted") unless
+            # privileged. No Intel GPU device plugin deployed, so this is
+            # the plain path to real access, same as the rclone sidecar
+            # below needing it for its FUSE mount.
+            securityContext:
+              privileged: true
             resources:
               requests:
                 cpu: 100m
