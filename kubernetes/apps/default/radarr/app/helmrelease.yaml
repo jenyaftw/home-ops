@@ -1,4 +1,4 @@
-# The rclone sidecar mounts zurg's WebDAV (the Real-Debrid library) via
+# The rclone sidecar mounts zurg's WebDAV (the TorBox library) via
 # FUSE into a shared emptyDir, so radarr sees it as a local directory at
 # /data. Needs privileged (CAP_SYS_ADMIN + /dev/fuse) - see AGENTS.md for
 # why the default namespace allows this.

@@ -1,4 +1,4 @@
-# Presents the Real-Debrid library as WebDAV (mounted by radarr/sonarr's
+# Presents the TorBox library as WebDAV (mounted by radarr/sonarr's
 # rclone sidecars) and, on the same port under /api/v2, a qBittorrent-
 # compatible API added as a Download Client directly in radarr/sonarr -
 # see config.yml's magic/qbittorrent blocks.
