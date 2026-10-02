@@ -39,6 +39,7 @@ spec:
                   printf '[misc]\nhost_whitelist = %s\ndownload_dir = /media/usenet/incomplete\ncomplete_dir = /media/usenet/complete\n' "$hosts" > "$config"
                 fi
                 umask 077
+                # Flux decrypts the mounted NNTP Secret before this pod starts.
                 block=/tmp/torbox-server
                 {
                   printf '[[TorBox]]\nname = TorBox\ndisplayname = TorBox\nhost = nntp.torbox.app\nport = 563\nssl = 1\nssl_verify = 2\nconnections = 10\nenable = 1\npriority = 0\nusername = '
