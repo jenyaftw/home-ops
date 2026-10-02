@@ -20,6 +20,14 @@ spec:
     remediation:
       retries: 3
   values:
+    # Authentik is LAN-only and has no public DNS record. Keep its OIDC
+    # issuer hostname intact while resolving it through the internal Gateway.
+    defaultPodOptions:
+      hostAliases:
+        - ip: 10.0.10.200
+          hostnames:
+            - authentik.jenya.lol
+
     configMaps:
       rclone-conf:
         data:
