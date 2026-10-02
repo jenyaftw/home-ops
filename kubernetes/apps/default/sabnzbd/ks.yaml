@@ -13,7 +13,7 @@ spec:
   wait: true
   interval: 1h
   retryInterval: 1m
-  timeout: 5m
+  timeout: 15m
   dependsOn:
     - name: app-template
       namespace: flux-system
