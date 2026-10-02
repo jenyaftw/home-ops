@@ -47,6 +47,7 @@ spec:
               tag: latest
             env:
               TZ: Etc/UTC
+              JELLYFIN_PublishedServerUrl: https://jellyfin.jenya.lol
             # A hostPath mount alone only makes /dev/dri visible in the
             # filesystem - the container's device cgroup whitelist still
             # blocks actually opening it ("Operation not permitted") unless

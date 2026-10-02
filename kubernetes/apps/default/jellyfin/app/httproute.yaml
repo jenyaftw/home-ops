@@ -16,6 +16,17 @@ spec:
   hostnames:
     - jellyfin.jenya.lol
   rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /sso/OIDC/Start/authentik
+            statusCode: 302
     - backendRefs:
         - name: jellyfin
           port: 8096
