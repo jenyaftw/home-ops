@@ -21,7 +21,7 @@ spec:
       main:
         strategy: Recreate
         initContainers:
-          allow-hostnames:
+          configure:
             image:
               repository: busybox
               tag: "1.37"
@@ -33,9 +33,41 @@ spec:
                 hosts='sabnzbd.jenya.lol, sabnzbd, sabnzbd.default.svc.cluster.local'
                 if [ -f "$config" ]; then
                   sed -i "s/^host_whitelist =.*/host_whitelist = $hosts/" "$config"
+                  sed -i 's|^download_dir =.*|download_dir = /media/usenet/incomplete|' "$config"
+                  sed -i 's|^complete_dir =.*|complete_dir = /media/usenet/complete|' "$config"
                 else
-                  printf '[misc]\nhost_whitelist = %s\n' "$hosts" > "$config"
+                  printf '[misc]\nhost_whitelist = %s\ndownload_dir = /media/usenet/incomplete\ncomplete_dir = /media/usenet/complete\n' "$hosts" > "$config"
                 fi
+                umask 077
+                block=/tmp/torbox-server
+                {
+                  printf '[[TorBox]]\nname = TorBox\ndisplayname = TorBox\nhost = nntp.torbox.app\nport = 563\nssl = 1\nssl_verify = 2\nconnections = 10\nenable = 1\npriority = 0\nusername = '
+                  cat /run/secrets/nntp/username
+                  printf '\npassword = '
+                  cat /run/secrets/nntp/password
+                  printf '\n'
+                } > "$block"
+                awk -v block="$block" '
+                  /^\[servers\]$/ {
+                    print
+                    while ((getline line < block) > 0) print line
+                    close(block)
+                    found = 1
+                    next
+                  }
+                  /^\[\[TorBox\]\]$/ { skip = 1; next }
+                  skip && /^\[/ { skip = 0 }
+                  !skip { print }
+                  END {
+                    if (!found) {
+                      print "[servers]"
+                      while ((getline line < block) > 0) print line
+                      close(block)
+                    }
+                  }
+                ' "$config" > "${config}.new"
+                cat "${config}.new" > "$config"
+                : > "${config}.new"
         containers:
           main:
             image:
@@ -85,3 +117,11 @@ spec:
         path: /media
         globalMounts:
           - path: /media
+      nntp:
+        type: secret
+        name: sabnzbd-nntp
+        advancedMounts:
+          main:
+            configure:
+              - path: /run/secrets/nntp
+                readOnly: true
