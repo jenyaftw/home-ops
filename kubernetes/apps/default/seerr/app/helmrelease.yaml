@@ -55,19 +55,6 @@ spec:
           http:
             port: 5055
 
-    route:
-      main:
-        kind: HTTPRoute
-        hostnames:
-          - seerr.jenya.lol
-        parentRefs:
-          - name: internal
-            namespace: kube-system
-        rules:
-          - backendRefs:
-              - identifier: main
-                port: 5055
-
     persistence:
       config:
         type: persistentVolumeClaim
