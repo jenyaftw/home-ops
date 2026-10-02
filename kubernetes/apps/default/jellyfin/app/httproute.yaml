@@ -1,6 +1,5 @@
 # Same hostname on both Gateways: true split-horizon, same as podinfo.
-# Routed through Authentik's embedded outpost (like flux/grafana)
-# instead of straight to jellyfin - see the authentik blueprint.
+# Jellyfin handles OIDC itself, so send traffic directly to Jellyfin.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -18,6 +17,5 @@ spec:
     - jellyfin.jenya.lol
   rules:
     - backendRefs:
-        - name: authentik-server
-          namespace: authentik
-          port: 80
+        - name: jellyfin
+          port: 8096
