@@ -1,0 +1,25 @@
+# This password is also set in qBittorrent and used by Radarr and Sonarr download clients.
+apiVersion: v1
+kind: Secret
+metadata:
+    name: qbittorrent-webui
+    namespace: default
+type: Opaque
+stringData:
+    username: ENC[AES256_GCM,data:JPPrgag=,iv:/hc6dWNcfKnS55eVgUhzPbnMYx2YegGS+WIHMhVeWOY=,tag:0I4s3hg5C442nxQvTrupqg==,type:str]
+    password: ENC[AES256_GCM,data:mDcCjJCi8ugLOjf3KgWOEzZtQnS1eHwUgORCI+oXjYMYpnCGJeKr7A==,iv:GodbIV7Sl4+OT+Rzbe5SR2shkxAX7WIDfxLCS5SczcA=,tag:3e2ZUoZFGo2N+SbENcSUOQ==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBTTFZRSngxN3M0Z20wRXUy
+            TnljdDh2RGNFRThCUTJmRTh3dHFjYVBPQ0NVCjBBYjdOcHpTaE1OdkdFK3hKOHRh
+            K1laUS95WVdWZ295bmRrYnl6d3VBK1UKLS0tIFNsWEV1VDJYWVl3OFV2L1ZtU0Jl
+            OGpqODY2OWM4T21rL0k4Q2QxNk9uMzAKNONwgNSIG3KT0yKp64tUerzxxFxcUrEZ
+            YZ10Y1S4wNM+7TyXgguLtTljRVZSTScp1kbsCB2p1gVZa+r63tTtmQ==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age135zaeaxu0elyxn9ax64dgw9hsxk2frpnqpj672w23qgcc8ewza0srpk0pc
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-02T22:33:54Z"
+    mac: ENC[AES256_GCM,data:2wiJtptE1vSKkbX39uFucqEfnKsLCRW5WMIaoAc6F0VJfmCJdu5Z33KmtYSap3Q6r1IqCnGMqIUiaCwEdmV1dfI2cMJpTPqldAdFL8dzU3j/387uX4WRZkf7ka+2xQvIZhDQX1m9uPZsd94AFNrK5Eut1wnOQ/ILPeDF0MUrWkg=,iv:aLCADD5fr9l98BPLngT+y9ikXPHlRm2A+hDXB5h5SQI=,tag:XeSswMQ/XhHYNn89HD3IJA==,type:str]
+    version: 3.13.3
