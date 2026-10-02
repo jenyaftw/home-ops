@@ -20,6 +20,22 @@ spec:
     controllers:
       main:
         strategy: Recreate
+        initContainers:
+          allow-hostnames:
+            image:
+              repository: busybox
+              tag: "1.37"
+            command:
+              - /bin/sh
+              - -ec
+              - |
+                config=/config/sabnzbd.ini
+                hosts='sabnzbd.jenya.lol, sabnzbd, sabnzbd.default.svc.cluster.local'
+                if [ -f "$config" ]; then
+                  sed -i "s/^host_whitelist =.*/host_whitelist = $hosts/" "$config"
+                else
+                  printf '[misc]\nhost_whitelist = %s\n' "$hosts" > "$config"
+                fi
         containers:
           main:
             image:
