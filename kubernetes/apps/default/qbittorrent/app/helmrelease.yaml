@@ -89,9 +89,9 @@ spec:
 
     persistence:
       config:
-        type: persistentVolumeClaim
-        accessMode: ReadWriteOnce
-        size: 2Gi
+        type: nfs
+        server: 10.0.10.20
+        path: /media/appdata/qbittorrent
         globalMounts:
           - path: /config
       media:
