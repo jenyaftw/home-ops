@@ -1,5 +1,5 @@
-# Syncs TRaSH Guides quality profiles/custom formats into Radarr (movies)
-# and Sonarr (TV + a separate anime profile). trash_ids below are pinned
+# Syncs TRaSH Guides quality profiles/custom formats into Radarr (movies
+# and anime movies) and Sonarr (TV + a separate anime profile). trash_ids below are pinned
 # to specific TRaSH Guides profiles - see the linked docs per profile if
 # you want to swap one out. api_key values come from env vars, not the
 # ConfigMap, so this file has no secrets in it.
@@ -33,6 +33,9 @@ spec:
                   type: movie
                 quality_profiles:
                   - trash_id: d1d67249d3890e49bc12e275d989a7e9  # HD Bluray + WEB
+                    reset_unmatched_scores:
+                      enabled: true
+                  - trash_id: 722b624f9af1e492284c4bc842153a38  # [Anime] Remux-1080p
                     reset_unmatched_scores:
                       enabled: true
                 custom_format_groups:

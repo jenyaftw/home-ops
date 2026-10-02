@@ -10,3 +10,4 @@ resources:
   - ./recyclarr/ks.yaml
   - ./flaresolverr/ks.yaml
   - ./jellyfin/ks.yaml
+  - ./seerr/ks.yaml

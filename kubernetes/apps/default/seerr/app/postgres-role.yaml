@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: seerr
+  namespace: database
+spec:
+  cluster:
+    name: postgres
+  name: seerr
+  login: true
+  createdb: false
+  databaseRoleReclaimPolicy: retain
+  passwordSecret:
+    name: seerr-postgres-credentials
