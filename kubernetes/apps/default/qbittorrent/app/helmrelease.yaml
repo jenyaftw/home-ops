@@ -29,7 +29,7 @@ spec:
             env:
               VPN_SERVICE_PROVIDER: airvpn
               VPN_TYPE: wireguard
-              FIREWALL_INPUT_PORTS: "8080"
+              FIREWALL_INPUT_PORTS: "8080,9999"
               FIREWALL_OUTBOUND_SUBNETS: "10.244.0.0/16,10.96.0.0/12,10.0.10.0/24"
               HEALTH_SERVER_ADDRESS: "0.0.0.0:9999"
             envFrom:
