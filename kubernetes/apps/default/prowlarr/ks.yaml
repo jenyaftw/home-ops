@@ -17,3 +17,7 @@ spec:
   dependsOn:
     - name: app-template
       namespace: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
