@@ -77,6 +77,31 @@ data:
         attrs:
           name: Jellyfin
           provider: !Find [authentik_providers_oauth2.oauth2provider, [name, jellyfin-oidc]]
+      - model: authentik_providers_proxy.proxyprovider
+        id: seerr-proxy-provider
+        identifiers:
+          name: seerr-proxy
+        attrs:
+          authentication_flow: !KeyOf default-authentication-flow
+          authorization_flow: !KeyOf default-authorization-flow
+          invalidation_flow: !KeyOf default-invalidation-flow
+          mode: proxy
+          external_host: https://seerr.jenya.lol
+          internal_host: http://seerr.default.svc.cluster.local:5055
+          internal_host_ssl_validation: false
+      - model: authentik_core.application
+        id: seerr-application
+        identifiers:
+          slug: seerr
+        attrs:
+          name: Seerr
+          provider: !KeyOf seerr-proxy-provider
+      - model: authentik_policies.policybinding
+        identifiers:
+          target: !KeyOf seerr-application
+          order: 0
+        attrs:
+          group: !Find [authentik_core.group, [name, jellyfin-users]]
       - model: authentik_outposts.outpost
         identifiers:
           managed: goauthentik.io/outposts/embedded
@@ -84,3 +109,4 @@ data:
           providers:
             - !KeyOf flux-proxy-provider
             - !KeyOf grafana-proxy-provider
+            - !KeyOf seerr-proxy-provider
