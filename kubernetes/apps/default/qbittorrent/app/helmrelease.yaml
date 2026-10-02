@@ -1,0 +1,102 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: qbittorrent
+  namespace: default
+spec:
+  interval: 1h
+  timeout: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      main:
+        strategy: Recreate
+        initContainers:
+          vpn:
+            image:
+              repository: ghcr.io/qdm12/gluetun
+              tag: latest
+            restartPolicy: Always
+            env:
+              VPN_SERVICE_PROVIDER: airvpn
+              VPN_TYPE: wireguard
+              FIREWALL_INPUT_PORTS: "8080"
+              FIREWALL_OUTBOUND_SUBNETS: "10.244.0.0/16,10.96.0.0/12,10.0.10.0/24"
+              HEALTH_SERVER_ADDRESS: "0.0.0.0:9999"
+            envFrom:
+              - secretRef:
+                  name: qbittorrent-airvpn
+            securityContext:
+              privileged: true
+              capabilities:
+                add: ["NET_ADMIN"]
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 9999
+                  periodSeconds: 5
+                  failureThreshold: 36
+        containers:
+          main:
+            image:
+              repository: lscr.io/linuxserver/qbittorrent
+              tag: latest
+            env:
+              TZ: Etc/UTC
+              PUID: "1000"
+              PGID: "1000"
+              WEBUI_PORT: "8080"
+              TORRENTING_PORT: "6881"
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 2Gi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8080
+
+    route:
+      main:
+        kind: HTTPRoute
+        hostnames:
+          - qbittorrent.jenya.lol
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 8080
+
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        globalMounts:
+          - path: /config
+      media:
+        type: nfs
+        server: 10.0.10.20
+        path: /media
+        globalMounts:
+          - path: /media
