@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jellyfin-entry
+  namespace: default
+data:
+  index.html: |
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Opening Jellyfin</title>
+      </head>
+      <body>
+        <p>Opening Jellyfin…</p>
+        <script>
+          // The OIDC plugin stores a Jellyfin session here before returning to /.
+          try {
+            const saved = JSON.parse(localStorage.getItem("jellyfin_credentials") || "null");
+            const signedIn = saved && Array.isArray(saved.Servers) &&
+              saved.Servers.some(server => server.AccessToken && server.UserId);
+            location.replace(signedIn ? "/web/" : "/sso/OIDC/Start/authentik");
+          } catch (_) {
+            location.replace("/sso/OIDC/Start/authentik");
+          }
+        </script>
+        <noscript><a href="/sso/OIDC/Start/authentik">Sign in with Authentik</a></noscript>
+      </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin-entry
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jellyfin-entry
+  template:
+    metadata:
+      labels:
+        app: jellyfin-entry
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.28-alpine
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: page
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: page
+          configMap:
+            name: jellyfin-entry
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-entry
+  namespace: default
+spec:
+  selector:
+    app: jellyfin-entry
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

@@ -20,13 +20,9 @@ spec:
         - path:
             type: Exact
             value: /
-      filters:
-        - type: RequestRedirect
-          requestRedirect:
-            path:
-              type: ReplaceFullPath
-              replaceFullPath: /sso/OIDC/Start/authentik
-            statusCode: 302
+      backendRefs:
+        - name: jellyfin-entry
+          port: 80
     - backendRefs:
         - name: jellyfin
           port: 8096
