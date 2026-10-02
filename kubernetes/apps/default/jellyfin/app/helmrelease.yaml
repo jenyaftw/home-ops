@@ -20,8 +20,7 @@ spec:
     remediation:
       retries: 3
   values:
-    # Authentik is LAN-only and has no public DNS record. Keep its OIDC
-    # issuer hostname intact while resolving it through the internal Gateway.
+    # Resolve Authentik through the internal Gateway from inside the cluster.
     defaultPodOptions:
       hostAliases:
         - ip: 10.0.10.200
@@ -47,7 +46,7 @@ spec:
               tag: latest
             env:
               TZ: Etc/UTC
-              JELLYFIN_PublishedServerUrl: https://jellyfin.jenya.lol
+              JELLYFIN_PublishedServerUrl: https://jelly.jenya.lol
             # A hostPath mount alone only makes /dev/dri visible in the
             # filesystem - the container's device cgroup whitelist still
             # blocks actually opening it ("Operation not permitted") unless

@@ -1,5 +1,5 @@
 # Declares Proxy Providers for apps using the embedded outpost, plus the
-# Jellyfin application using an existing OIDC provider. Verified identifiers
+# Jellyfin application and its existing OIDC provider. Verified identifiers
 # against the live database: default flow slugs, and the embedded outpost's fixed
 # `managed: goauthentik.io/outposts/embedded` key.
 #
@@ -70,13 +70,22 @@ data:
         attrs:
           name: Grafana
           provider: !KeyOf grafana-proxy-provider
+      - model: authentik_providers_oauth2.oauth2provider
+        id: jellyfin-oidc-provider
+        identifiers:
+          name: jellyfin-oidc
+        attrs:
+          redirect_uris:
+            - matching_mode: strict
+              url: https://jelly.jenya.lol/sso/OIDC/Callback/authentik
+              redirect_uri_type: authorization
       - model: authentik_core.application
         id: jellyfin-application
         identifiers:
           slug: jellyfin
         attrs:
           name: Jellyfin
-          provider: !Find [authentik_providers_oauth2.oauth2provider, [name, jellyfin-oidc]]
+          provider: !KeyOf jellyfin-oidc-provider
       - model: authentik_providers_proxy.proxyprovider
         id: seerr-proxy-provider
         identifiers:
