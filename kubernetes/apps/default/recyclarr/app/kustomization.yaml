@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - ./secret.sops.yaml
   - ./helmrelease.yaml
-  - ./nana-anime-job.yaml
+  - ./nana-library-job.yaml

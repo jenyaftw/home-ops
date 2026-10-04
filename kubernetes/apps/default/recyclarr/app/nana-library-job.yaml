@@ -1,9 +1,9 @@
-# NANA was added as standard TV, so Sonarr excludes Toloka's Anime (5070)
-# releases even though the indexer and anime quality profile are configured.
+# NANA was added as standard TV on the zurg magic mount. Anime search is
+# needed for Toloka's Anime (5070) releases; local imports need the NAS root.
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: sonarr-nana-anime
+  name: sonarr-nana-library
   namespace: default
 spec:
   backoffLimit: 5
@@ -12,7 +12,7 @@ spec:
       restartPolicy: Never
       automountServiceAccountToken: false
       containers:
-        - name: set-series-type
+        - name: configure-series
           image: python:3.13-alpine
           env:
             - name: SONARR_API_KEY
@@ -36,18 +36,22 @@ spec:
               nana = next((item for item in series if item["tvdbId"] == 80742), None)
               if nana is None:
                   print("NANA is not in Sonarr; nothing to update")
-              elif nana["seriesType"] == "anime":
-                  print("NANA already uses anime search")
+              elif nana["seriesType"] == "anime" and nana["path"] == "/media/tv/NANA":
+                  print("NANA already uses anime search and the NAS library")
               else:
+                  if nana["statistics"]["episodeFileCount"]:
+                      raise RuntimeError("NANA has files; move them before changing its library path")
                   nana["seriesType"] = "anime"
+                  nana["rootFolderPath"] = "/media/tv"
+                  nana["path"] = "/media/tv/NANA"
                   request = urllib.request.Request(
-                      f"{base}/{nana['id']}",
+                      f"{base}/{nana['id']}?moveFiles=false",
                       data=json.dumps(nana).encode(),
                       headers={**headers, "Content-Type": "application/json"},
                       method="PUT",
                   )
                   with urllib.request.urlopen(request, timeout=30) as response:
                       updated = json.load(response)
-                  if updated["seriesType"] != "anime":
-                      raise RuntimeError("Sonarr did not save the anime series type")
-                  print("NANA now uses anime search")
+                  if updated["seriesType"] != "anime" or updated["path"] != "/media/tv/NANA":
+                      raise RuntimeError("Sonarr did not save NANA's series settings")
+                  print("NANA now uses anime search and the NAS library")
