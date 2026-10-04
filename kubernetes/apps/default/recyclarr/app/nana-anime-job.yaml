@@ -1,0 +1,53 @@
+# NANA was added as standard TV, so Sonarr excludes Toloka's Anime (5070)
+# releases even though the indexer and anime quality profile are configured.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sonarr-nana-anime
+  namespace: default
+spec:
+  backoffLimit: 5
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      containers:
+        - name: set-series-type
+          image: python:3.13-alpine
+          env:
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: recyclarr-secrets
+                  key: SONARR_API_KEY
+          command:
+            - python
+            - -c
+            - |
+              import json
+              import os
+              import urllib.request
+
+              base = "http://sonarr.default.svc.cluster.local:8989/api/v3/series"
+              headers = {"X-Api-Key": os.environ["SONARR_API_KEY"]}
+              with urllib.request.urlopen(urllib.request.Request(base, headers=headers), timeout=30) as response:
+                  series = json.load(response)
+
+              nana = next((item for item in series if item["tvdbId"] == 80742), None)
+              if nana is None:
+                  print("NANA is not in Sonarr; nothing to update")
+              elif nana["seriesType"] == "anime":
+                  print("NANA already uses anime search")
+              else:
+                  nana["seriesType"] = "anime"
+                  request = urllib.request.Request(
+                      f"{base}/{nana['id']}",
+                      data=json.dumps(nana).encode(),
+                      headers={**headers, "Content-Type": "application/json"},
+                      method="PUT",
+                  )
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      updated = json.load(response)
+                  if updated["seriesType"] != "anime":
+                      raise RuntimeError("Sonarr did not save the anime series type")
+                  print("NANA now uses anime search")
