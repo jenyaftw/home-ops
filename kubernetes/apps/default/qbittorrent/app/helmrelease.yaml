@@ -21,6 +21,19 @@ spec:
       main:
         strategy: Recreate
         initContainers:
+          prepare-download-dirs:
+            image:
+              repository: busybox
+              tag: "1.37"
+            command:
+              - /bin/sh
+              - -ec
+              - |
+                mkdir -p /media/torrents/radarr /media/torrents/sonarr
+                chmod 2775 /media/torrents/radarr /media/torrents/sonarr
+            securityContext:
+              runAsUser: 1000
+              runAsGroup: 1000
           vpn:
             image:
               repository: ghcr.io/qdm12/gluetun
