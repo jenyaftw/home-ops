@@ -47,8 +47,6 @@ spec:
               tv:
                 base_url: http://sonarr.default.svc.cluster.local:8989
                 api_key: !env_var SONARR_API_KEY
-                quality_definition:
-                  type: series
                 quality_profiles:
                   - trash_id: 72dae194fc92bf828f32cde7744e51a1  # WEB-1080p
                     reset_unmatched_scores:
@@ -65,10 +63,19 @@ spec:
                 api_key: !env_var SONARR_API_KEY
                 quality_definition:
                   type: anime
+                  # Anime season packs encoded in x265 can be far smaller than
+                  # the guide's Blu-ray floor (NANA: 16.7 GB for 1175 minutes).
+                  # Sonarr quality sizes are instance-wide, not per profile.
+                  qualities:
+                    - name: Bluray-1080p
+                      min: 12
                 quality_profiles:
                   - trash_id: 20e0fc959f1f1704bed501f23bdae76f  # [Anime] Remux-1080p
                     reset_unmatched_scores:
                       enabled: true
+                    # Allow a first download from an unranked group while
+                    # still preferring higher-scored anime releases.
+                    min_format_score: 0
 
     controllers:
       main:
