@@ -41,6 +41,16 @@ spec:
                   tcpSocket:
                     port: 3000
               readiness: *probe
+              # Port 3000 only opens after the anime databases finish their
+              # initial download, which outlasts the default liveness budget.
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 3000
+                  periodSeconds: 10
+                  failureThreshold: 30
             resources:
               requests:
                 cpu: 50m
