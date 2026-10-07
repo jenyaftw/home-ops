@@ -13,3 +13,5 @@ resources:
   - ./flaresolverr/ks.yaml
   - ./jellyfin/ks.yaml
   - ./seerr/ks.yaml
+  - ./aiostreams/ks.yaml
+  - ./aiometadata/ks.yaml

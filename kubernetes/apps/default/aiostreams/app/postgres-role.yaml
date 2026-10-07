@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: aiostreams
+  namespace: database
+spec:
+  cluster:
+    name: postgres
+  name: aiostreams
+  login: true
+  createdb: false
+  databaseRoleReclaimPolicy: retain
+  passwordSecret:
+    name: aiostreams-postgres-credentials

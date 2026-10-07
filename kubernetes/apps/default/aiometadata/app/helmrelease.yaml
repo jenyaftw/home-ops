@@ -1,0 +1,81 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: aiometadata
+  namespace: default
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/cedya77/aiometadata
+              tag: 3.4.1
+            env:
+              TZ: Etc/UTC
+              PORT: "3232"
+              HOST_NAME: https://aiometadata.jenya.lol
+              NODE_ENV: production
+              LOG_LEVEL: info
+            envFrom:
+              - secretRef:
+                  name: aiometadata-secret
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/live
+                    port: 3232
+                  initialDelaySeconds: 20
+              readiness: *probe
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 3232
+
+    route:
+      main:
+        hostnames:
+          - aiometadata.jenya.lol
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+          - name: external
+            namespace: kube-system
+        labels:
+          external-dns.io/enabled: "true"
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 3232
+
+    # Config lives in Postgres and cache in Redis; addon/data only holds the
+    # optional on-disk poster cache, which is off.
+    persistence:
+      data:
+        type: emptyDir
+        globalMounts:
+          - path: /app/addon/data

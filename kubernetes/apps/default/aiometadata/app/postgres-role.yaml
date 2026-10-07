@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: aiometadata
+  namespace: database
+spec:
+  cluster:
+    name: postgres
+  name: aiometadata
+  login: true
+  createdb: false
+  databaseRoleReclaimPolicy: retain
+  passwordSecret:
+    name: aiometadata-postgres-credentials
