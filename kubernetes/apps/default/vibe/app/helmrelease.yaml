@@ -54,12 +54,12 @@ spec:
           main:
             image:
               repository: ghcr.io/jenyaftw/vibe-server
-              tag: 0.5.3
+              tag: 0.5.4
             env:
               TZ: Europe/Kiev
               VIBE_RUNNER: k8s
               VIBE_NAMESPACE: default
-              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.5.3
+              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.5.4
               VIBE_ORCHESTRATOR_URL: http://vibe.default.svc.cluster.local:8080
               VIBE_PUBLIC_URL: https://vibe.jenya.lol
               VIBE_WORKER_ENV_SECRET: vibe-worker-env
