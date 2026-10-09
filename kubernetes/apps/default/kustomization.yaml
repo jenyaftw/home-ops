@@ -17,3 +17,4 @@ resources:
   - ./aiometadata/ks.yaml
   - ./cliproxyapi/ks.yaml
   - ./cpa-usage-keeper/ks.yaml
+  - ./vibe/ks.yaml

@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: vibe
+  namespace: database
+spec:
+  cluster:
+    name: postgres
+  name: vibe
+  login: true
+  createdb: false
+  databaseRoleReclaimPolicy: retain
+  passwordSecret:
+    name: vibe-postgres-credentials
