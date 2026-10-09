@@ -60,7 +60,8 @@ spec:
               VIBE_RUNNER: k8s
               VIBE_NAMESPACE: default
               VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.5.5
-              VIBE_WORKER_MEMORY: 6Gi
+              VIBE_WORKER_MEMORY: 2Gi
+              VIBE_WORKER_MEMORY_LIMIT: 6Gi
               VIBE_ORCHESTRATOR_URL: http://vibe.default.svc.cluster.local:8080
               VIBE_PUBLIC_URL: https://vibe.jenya.lol
               VIBE_WORKER_ENV_SECRET: vibe-worker-env
