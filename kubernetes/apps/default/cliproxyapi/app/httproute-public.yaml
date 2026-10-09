@@ -1,0 +1,25 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: cliproxyapi-public
+  namespace: default
+  labels:
+    external-dns.io/enabled: "true"
+spec:
+  parentRefs:
+    - name: external
+      namespace: kube-system
+  hostnames:
+    - ai.jenya.lol
+  # Public surface is deliberately only the OpenAI-compatible API. PathPrefix
+  # matches whole segments, so /v1beta, /v0/management, /management.html and
+  # /healthz get a gateway 404 and never reach the app (which holds the OAuth
+  # tokens for every subscription). Don't widen this without re-checking.
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /v1
+      backendRefs:
+        - name: cliproxyapi
+          port: 8317
