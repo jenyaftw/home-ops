@@ -65,9 +65,15 @@ spec:
             }
           }
 
+      # The alloy binary is ~550MB. With a limit smaller than its text
+      # segment the cgroup can't keep the executable's pages cached and
+      # thrashes: constant refaults of the binary from disk (hundreds of
+      # MB/s of reads on the Talos system disk, where etcd lives), which
+      # stalls etcd and trips the Talos OOM controller into killing
+      # BestEffort pods. Keep the limit comfortably above the binary size.
       resources:
         requests:
           cpu: 50m
-          memory: 64Mi
+          memory: 256Mi
         limits:
-          memory: 200Mi
+          memory: 768Mi
