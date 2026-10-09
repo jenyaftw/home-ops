@@ -54,17 +54,18 @@ spec:
           main:
             image:
               repository: ghcr.io/jenyaftw/vibe-server
-              tag: 0.4.1
+              tag: 0.4.2
             env:
               TZ: Europe/Kiev
               VIBE_RUNNER: k8s
               VIBE_NAMESPACE: default
-              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.4.1
+              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.4.2
               VIBE_ORCHESTRATOR_URL: http://vibe.default.svc.cluster.local:8080
               VIBE_PUBLIC_URL: https://vibe.jenya.lol
               VIBE_WORKER_ENV_SECRET: vibe-worker-env
               VIBE_STORAGE_CLASS: proxmox-lvm
               VIBE_IMAGE_PULL_SECRET: ghcr-pull-secret
+              VIBE_POD_HOST_ALIASES: 10.0.10.200=cliproxy.jenya.lol
               DB_PASSWORD:
                 valueFrom:
                   secretKeyRef:
