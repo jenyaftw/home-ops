@@ -1,0 +1,86 @@
+# Usage history + cost dashboard for CLIProxyAPI. Drains the proxy's
+# per-request usage queue (RESP protocol on the proxy's own port 8317)
+# into SQLite and prices every request at API list rates.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cpa-usage-keeper
+  namespace: default
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      main:
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: ghcr.io/willxup/cpa-usage-keeper
+              tag: v1.15.10
+            # The entrypoint starts as root to chown /data, then drops to
+            # the unprivileged "app" user via su-exec - no fsGroup needed.
+            env:
+              TZ: Europe/Kiev
+              CPA_BASE_URL: http://cliproxyapi.default.svc.cluster.local:8317
+              CPA_PUBLIC_URL: https://cliproxy.jenya.lol
+              # cilium-envoy (hostNetwork) is the only client Keeper sees.
+              TRUSTED_PROXY_CIDRS: 10.0.10.0/24
+              AUTH_ENABLED: "true"
+              WORK_DIR: /data
+              # Logs go to stdout -> Alloy -> Loki; no file logs on the PVC.
+              LOG_FILE_ENABLED: "false"
+            envFrom:
+              - secretRef:
+                  name: cpa-usage-keeper-secret
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+              readiness: *probe
+            resources:
+              requests:
+                cpu: 20m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8080
+
+    route:
+      main:
+        hostnames:
+          - keeper.jenya.lol
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 8080
+
+    persistence:
+      data:
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        globalMounts:
+          - path: /data
