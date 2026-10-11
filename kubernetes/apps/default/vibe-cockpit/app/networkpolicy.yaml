@@ -1,0 +1,25 @@
+# Only Authentik's outpost (embedded in authentik-server) may reach the cockpit: COCKPIT_AUTH=none relies on it, so a
+# compromised pod elsewhere in the cluster cannot get an admin terminal. Kubelet probes come from the host and are allowed.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vibe-cockpit
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vibe-cockpit
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: authentik
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: authentik
+              app.kubernetes.io/component: server
+      ports:
+        - protocol: TCP
+          port: 7681

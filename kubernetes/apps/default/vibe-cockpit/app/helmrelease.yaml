@@ -1,6 +1,6 @@
-# The vibe board + chat in a browser terminal (ttyd + tmux). ClusterIP only: there is no route on purpose. The pod holds
-# the orchestrator admin token, so expose it only behind Authentik's outpost (it also has ttyd basic auth, user "vibe",
-# password = the admin token). Until then: kubectl -n default port-forward svc/vibe-cockpit 7681:7681
+# The vibe board + chat in a browser terminal (ttyd + tmux) at https://cockpit.jenya.lol, behind Authentik (see
+# httproute.yaml and the cockpit-proxy blueprint). The pod holds the orchestrator admin token, so ttyd's own basic auth is
+# off (COCKPIT_AUTH=none) and networkpolicy.yaml lets only Authentik's outpost reach it.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -40,6 +40,7 @@ spec:
             env:
               TZ: Europe/Kiev
               VIBE_URL: http://vibe.default.svc.cluster.local:8080
+              COCKPIT_AUTH: none
             envFrom:
               # Only VIBE_ADMIN_TOKEN; the cockpit uses it as the client token and the basic-auth password.
               - secretRef:

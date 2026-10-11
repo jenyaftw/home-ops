@@ -111,6 +111,40 @@ data:
           order: 0
         attrs:
           group: !Find [authentik_core.group, [name, jellyfin-users]]
+      - model: authentik_providers_proxy.proxyprovider
+        id: cockpit-proxy-provider
+        identifiers:
+          name: cockpit-proxy
+        attrs:
+          authentication_flow: !KeyOf default-authentication-flow
+          authorization_flow: !KeyOf default-authorization-flow
+          invalidation_flow: !KeyOf default-invalidation-flow
+          mode: proxy
+          external_host: https://cockpit.jenya.lol
+          internal_host: http://vibe-cockpit.default.svc.cluster.local:7681
+          internal_host_ssl_validation: false
+      - model: authentik_core.application
+        id: cockpit-application
+        identifiers:
+          slug: cockpit
+        attrs:
+          name: Vibe cockpit
+          provider: !KeyOf cockpit-proxy-provider
+      # The cockpit holds the vibe admin token, so only these accounts get in (not every jellyfin user).
+      - model: authentik_core.group
+        id: cockpit-users-group
+        identifiers:
+          name: vibe-cockpit-users
+        attrs:
+          users:
+            - !Find [authentik_core.user, [username, akadmin]]
+            - !Find [authentik_core.user, [username, jenyaftw]]
+      - model: authentik_policies.policybinding
+        identifiers:
+          target: !KeyOf cockpit-application
+          order: 0
+        attrs:
+          group: !KeyOf cockpit-users-group
       - model: authentik_outposts.outpost
         identifiers:
           managed: goauthentik.io/outposts/embedded
@@ -119,3 +153,4 @@ data:
             - !KeyOf flux-proxy-provider
             - !KeyOf grafana-proxy-provider
             - !KeyOf seerr-proxy-provider
+            - !KeyOf cockpit-proxy-provider
