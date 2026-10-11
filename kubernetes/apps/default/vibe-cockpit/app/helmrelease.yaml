@@ -1,0 +1,86 @@
+# The vibe board + chat in a browser terminal (ttyd + tmux). ClusterIP only: there is no route on purpose. The pod holds
+# the orchestrator admin token, so expose it only behind Authentik's outpost (it also has ttyd basic auth, user "vibe",
+# password = the admin token). Until then: kubectl -n default port-forward svc/vibe-cockpit 7681:7681
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vibe-cockpit
+  namespace: default
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    defaultPodOptions:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+
+    controllers:
+      main:
+        # One pod holds the tmux session; never run two.
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: ghcr.io/jenyaftw/vibe-cockpit
+              tag: 0.5.8
+            env:
+              TZ: Europe/Kiev
+              VIBE_URL: http://vibe.default.svc.cluster.local:8080
+            envFrom:
+              # Only VIBE_ADMIN_TOKEN; the cockpit uses it as the client token and the basic-auth password.
+              - secretRef:
+                  name: vibe-secret
+            probes:
+              # ttyd answers 401 without credentials, so probe the port, not an HTTP path.
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 7681
+                  periodSeconds: 20
+                  timeoutSeconds: 5
+                  failureThreshold: 6
+              readiness: *probe
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 1Gi
+
+    persistence:
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      data:
+        type: emptyDir
+        globalMounts:
+          - path: /data
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 7681
