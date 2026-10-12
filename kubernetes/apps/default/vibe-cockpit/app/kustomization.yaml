@@ -4,3 +4,4 @@ resources:
   - ./helmrelease.yaml
   - ./httproute.yaml
   - ./networkpolicy.yaml
+  - ./secret.sops.yaml

@@ -1,6 +1,8 @@
 # The vibe board + chat in a browser terminal (ttyd + tmux) at https://cockpit.jenya.lol, behind Authentik (see
-# httproute.yaml and the cockpit-proxy blueprint). The pod holds the orchestrator admin token, so ttyd's own basic auth is
-# off (COCKPIT_AUTH=none) and networkpolicy.yaml lets only Authentik's outpost reach it.
+# httproute.yaml and the cockpit-proxy blueprint). Several people: Authentik authenticates and sends the signed-in user in
+# X-authentik-username, ttyd trusts that header, and every person gets their own account, token and tmux server. The pod holds no
+# admin token, only VIBE_COCKPIT_SECRET (the same value as on the vibe orchestrator); networkpolicy.yaml lets only Authentik's
+# outpost reach the pod, which is what makes trusting the header safe.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -36,15 +38,16 @@ spec:
           main:
             image:
               repository: ghcr.io/jenyaftw/vibe-cockpit
-              tag: 0.5.9
+              tag: 0.6.0
             env:
               TZ: Europe/Kiev
               VIBE_URL: http://vibe.default.svc.cluster.local:8080
-              COCKPIT_AUTH: none
+              # Authentik's proxy provider sends the signed-in user in this header; ttyd refuses a connection without it.
+              COCKPIT_USER_HEADER: X-authentik-username
             envFrom:
-              # Only VIBE_ADMIN_TOKEN; the cockpit uses it as the client token and the basic-auth password.
+              # VIBE_COCKPIT_SECRET only (not the admin token): lets the cockpit create users and mint their tokens, nothing else.
               - secretRef:
-                  name: vibe-secret
+                  name: vibe-cockpit-secret
             probes:
               # ttyd answers 401 without credentials, so probe the port, not an HTTP path.
               liveness: &probe
@@ -63,11 +66,12 @@ spec:
               capabilities:
                 drop: [ALL]
             resources:
+              # Each person adds a board, a chat relay and one process per open task window: roughly 200-400 MB.
               requests:
                 cpu: 50m
-                memory: 128Mi
+                memory: 256Mi
               limits:
-                memory: 1Gi
+                memory: 2Gi
 
     persistence:
       tmp:

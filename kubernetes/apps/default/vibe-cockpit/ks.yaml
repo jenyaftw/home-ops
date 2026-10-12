@@ -19,3 +19,7 @@ spec:
       namespace: flux-system
     - name: vibe
       namespace: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
