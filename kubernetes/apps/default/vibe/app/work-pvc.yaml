@@ -1,0 +1,14 @@
+---
+# Shared by every vibe worker pod (one subPath per task or chat) and the orchestrator, which creates and deletes
+# those subdirectories. ReadWriteOnce is enough because it is a single-node cluster.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vibe-work
+  namespace: default
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: proxmox-lvm
+  resources:
+    requests:
+      storage: 100Gi

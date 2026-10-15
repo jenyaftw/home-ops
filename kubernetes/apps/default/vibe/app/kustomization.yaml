@@ -5,3 +5,4 @@ resources:
   - ./postgres-role.yaml
   - ./postgres-database.yaml
   - ./secret.sops.yaml
+  - ./work-pvc.yaml

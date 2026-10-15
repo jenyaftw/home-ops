@@ -54,16 +54,21 @@ spec:
           main:
             image:
               repository: ghcr.io/jenyaftw/vibe-server
-              tag: 0.6.4
+              tag: 0.6.5
             env:
               TZ: Europe/Kiev
               VIBE_RUNNER: k8s
               VIBE_NAMESPACE: default
-              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.6.1
+              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.6.5
               # Site admins by Authentik username: the first one to sign in keeps the existing projects and chats.
               VIBE_SITE_ADMINS: jenyaftw
-              VIBE_WORKER_MEMORY: 2Gi
-              VIBE_WORKER_MEMORY_LIMIT: 6Gi
+              VIBE_WORKER_MEMORY: 768Mi
+              VIBE_WORKER_MEMORY_LIMIT: 3Gi
+              VIBE_CHAT_MEMORY: 256Mi
+              # Runs get a subdirectory of this claim instead of their own PVC: each PVC is a Proxmox disk and a
+              # node attaches at most 24, which capped how many tasks and chats could run at once.
+              VIBE_SHARED_VOLUME: vibe-work
+              VIBE_SHARED_VOLUME_MOUNT: /shared
               VIBE_ORCHESTRATOR_URL: http://vibe.default.svc.cluster.local:8080
               VIBE_PUBLIC_URL: https://vibe.jenya.lol
               VIBE_STORAGE_CLASS: proxmox-lvm
@@ -117,6 +122,12 @@ spec:
                 memory: 256Mi
               limits:
                 memory: 1Gi
+
+    persistence:
+      work:
+        existingClaim: vibe-work
+        globalMounts:
+          - path: /shared
 
     service:
       main:
