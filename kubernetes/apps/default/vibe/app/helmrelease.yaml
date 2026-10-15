@@ -53,7 +53,7 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/jenyaftw/
+              repository: ghcr.io/jenyaftw/vibe-server
               tag: 0.6.6
             env:
               TZ: Europe/Kiev
