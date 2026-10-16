@@ -29,8 +29,8 @@ spec:
               - /bin/sh
               - -ec
               - |
-                mkdir -p /media/torrents/radarr /media/torrents/sonarr
-                chmod 2775 /media/torrents/radarr /media/torrents/sonarr
+                mkdir -p /media/torrents/radarr /media/torrents/sonarr /media/torrents/readarr
+                chmod 2775 /media/torrents/radarr /media/torrents/sonarr /media/torrents/readarr
             securityContext:
               runAsUser: 1000
               runAsGroup: 1000
