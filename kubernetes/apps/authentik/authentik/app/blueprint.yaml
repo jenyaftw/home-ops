@@ -154,6 +154,8 @@ data:
         attrs:
           client_type: public
           client_id: vibe
+          # A provider made from a blueprint starts with no grant types allowed.
+          grant_types: [authorization_code]
           authorization_flow: !KeyOf default-authorization-flow
           invalidation_flow: !KeyOf default-invalidation-flow
           signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]
