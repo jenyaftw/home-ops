@@ -54,12 +54,12 @@ spec:
           main:
             image:
               repository: ghcr.io/jenyaftw/vibe-server
-              tag: 0.6.13
+              tag: 0.6.14
             env:
               TZ: Europe/Kiev
               VIBE_RUNNER: k8s
               VIBE_NAMESPACE: default
-              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.6.13
+              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.6.14
               # Site admins by Authentik username: the first one to sign in keeps the existing projects and chats.
               VIBE_SITE_ADMINS: jenyaftw
               VIBE_WORKER_MEMORY: 768Mi
@@ -71,6 +71,9 @@ spec:
               VIBE_SHARED_VOLUME_MOUNT: /shared
               VIBE_ORCHESTRATOR_URL: http://vibe.default.svc.cluster.local:8080
               VIBE_PUBLIC_URL: https://vibe.jenya.lol
+              # What `vibe agent` dials on people's own machines (shown in the board's install command). Only /ws/agent is
+              # routed there (route.agents); a machine on the LAN may use https://vibe.jenya.lol instead.
+              VIBE_AGENT_URL: https://vibe-agents.jenya.lol
               VIBE_STORAGE_CLASS: proxmox-lvm
               VIBE_IMAGE_PULL_SECRET: ghcr-pull-secret
               VIBE_POD_HOST_ALIASES: 10.0.10.200=cliproxy.jenya.lol
@@ -145,5 +148,25 @@ spec:
             namespace: kube-system
         rules:
           - backendRefs:
+              - identifier: main
+                port: 8080
+      # Internet-facing, for `vibe agent` on machines outside the LAN: the agent socket and nothing else. It authenticates
+      # with a per-machine token and carries only the traffic of runs placed on that machine.
+      agents:
+        kind: HTTPRoute
+        # external-dns publishes a public Cloudflare record only for routes with this label.
+        labels:
+          external-dns.io/enabled: "true"
+        hostnames:
+          - vibe-agents.jenya.lol
+        parentRefs:
+          - name: external
+            namespace: kube-system
+        rules:
+          - matches:
+              - path:
+                  type: Exact
+                  value: /ws/agent
+            backendRefs:
               - identifier: main
                 port: 8080
