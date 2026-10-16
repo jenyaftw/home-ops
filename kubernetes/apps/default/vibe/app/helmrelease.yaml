@@ -54,12 +54,12 @@ spec:
           main:
             image:
               repository: ghcr.io/jenyaftw/vibe-server
-              tag: 0.6.15
+              tag: 0.6.16
             env:
               TZ: Europe/Kiev
               VIBE_RUNNER: k8s
               VIBE_NAMESPACE: default
-              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.6.15
+              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.6.16
               # Site admins by Authentik username: the first one to sign in keeps the existing projects and chats.
               VIBE_SITE_ADMINS: jenyaftw
               VIBE_WORKER_MEMORY: 768Mi
@@ -74,6 +74,10 @@ spec:
               # What `vibe agent` dials on people's own machines (shown in the board's install command). Only /ws/agent is
               # routed there (route.agents); a machine on the LAN may use https://vibe.jenya.lol instead.
               VIBE_AGENT_URL: https://vibe-agents.jenya.lol
+              # Sign in with Authentik (web client and `vibe login`): the "vibe" OIDC app in the authentik blueprint.
+              VIBE_OIDC_ISSUER: https://authentik.jenya.lol/application/o/vibe/
+              VIBE_OIDC_CLIENT_ID: vibe
+              VIBE_OIDC_NAME: Authentik
               VIBE_STORAGE_CLASS: proxmox-lvm
               VIBE_IMAGE_PULL_SECRET: ghcr-pull-secret
               VIBE_POD_HOST_ALIASES: 10.0.10.200=cliproxy.jenya.lol
