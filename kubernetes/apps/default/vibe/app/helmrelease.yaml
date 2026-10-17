@@ -54,12 +54,12 @@ spec:
           main:
             image:
               repository: ghcr.io/jenyaftw/vibe-server
-              tag: 0.8.2
+              tag: 0.8.3
             env:
               TZ: Europe/Kiev
               VIBE_RUNNER: k8s
               VIBE_NAMESPACE: default
-              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.8.2
+              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:0.8.3
               # Site admins by Authentik username: the first one to sign in keeps the existing projects and chats.
               VIBE_SITE_ADMINS: jenyaftw
               VIBE_WORKER_MEMORY: 768Mi
@@ -154,8 +154,9 @@ spec:
           - backendRefs:
               - identifier: main
                 port: 8080
-      # Internet-facing, for `vibe agent` on machines outside the LAN: the agent socket and nothing else. It authenticates
-      # with a per-machine token and carries only the traffic of runs placed on that machine.
+      # Internet-facing, for `vibe agent` on machines outside the LAN: the agent socket, and the installer (the script is public,
+      # the vibe package needs a machine token). The socket authenticates with a per-machine token and carries only the traffic
+      # of runs placed on that machine.
       agents:
         kind: HTTPRoute
         # external-dns publishes a public Cloudflare record only for routes with this label.
@@ -171,6 +172,12 @@ spec:
               - path:
                   type: Exact
                   value: /ws/agent
+              - path:
+                  type: Exact
+                  value: /install.sh
+              - path:
+                  type: Exact
+                  value: /install/vibe.tgz
             backendRefs:
               - identifier: main
                 port: 8080
