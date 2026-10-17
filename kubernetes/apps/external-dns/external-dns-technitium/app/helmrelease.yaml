@@ -1,0 +1,52 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns-technitium
+  namespace: external-dns
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: external-dns
+      version: "1.x"
+      sourceRef:
+        kind: HelmRepository
+        name: external-dns
+        namespace: external-dns
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    provider:
+      name: rfc2136
+    env:
+      - name: EXTERNAL_DNS_RFC2136_TSIG_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: technitium-tsig
+            key: secret
+    extraArgs:
+      # In-cluster Service, not the LB IP - no hairpin through L2/LB-IPAM.
+      - --rfc2136-host=technitium-dns.default.svc.cluster.local
+      - --rfc2136-port=53
+      - --rfc2136-zone=jenya.lol
+      - --rfc2136-tsig-keyname=external-dns
+      - --rfc2136-tsig-secret-alg=hmac-sha256
+      # Lists existing records via TSIG-signed AXFR (zone option in Technitium).
+      - --rfc2136-tsig-axfr
+      - --gateway-name=internal
+      - --gateway-namespace=kube-system
+    domainFilters:
+      - jenya.lol
+    # Unlike Pihole, RFC2136 can hold TXT ownership records, so sync is safe:
+    # only records owned by "technitium" are ever deleted.
+    registry: txt
+    txtOwnerId: technitium
+    policy: sync
+    sources:
+      - gateway-httproute
+    interval: 1m
+    triggerLoopOnEvent: true
