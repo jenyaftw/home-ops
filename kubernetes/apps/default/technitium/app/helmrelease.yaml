@@ -1,0 +1,132 @@
+# Technitium DNS - runs alongside the Pi-hole LXC (10.0.10.30), LAN clients
+# reach it on 10.0.10.202:53. Zones and TSIG keys live in /etc/dns, not env,
+# so after the first deploy, once, in https://dns.jenya.lol (admin / password
+# from secret.sops.yaml):
+#   1. Settings -> TSIG: add key "external-dns", HMAC-SHA256, shared secret =
+#      the value in external-dns/external-dns-technitium/app/secret.sops.yaml.
+#   2. Zones -> Add Zone: "jenya.lol", type Conditional Forwarder, forwarder
+#      "this-server" - names it doesn't hold (external-only routes) still
+#      resolve recursively instead of NXDOMAIN.
+#   3. jenya.lol -> Zone Options:
+#      - Zone Transfer: Allow, TSIG key "external-dns" (external-dns lists
+#        records over AXFR).
+#      - Dynamic Updates (RFC 2136): Allow, Security Policy: key
+#        "external-dns" for "jenya.lol" and "*.jenya.lol", all types.
+#   4. If Zones shows a "dns.jenya.lol" zone (auto-created from
+#      DNS_SERVER_DOMAIN), delete it - it would shadow the route record.
+# Until 1-3 are done, external-dns-technitium logs REFUSED/NOTAUTH every
+# minute; that's expected.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: technitium
+  namespace: default
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      main:
+        strategy: Recreate
+        pod:
+          securityContext:
+            sysctls:
+              # Upstream compose recommendation: wider source-port range for
+              # recursive queries. A "safe" sysctl, allowed without kubelet flags.
+              - name: net.ipv4.ip_local_port_range
+                value: "1024 65535"
+        containers:
+          main:
+            image:
+              repository: technitium/dns-server
+              tag: 15.6.1
+            env:
+              TZ: Europe/Kiev
+              DNS_SERVER_DOMAIN: dns.jenya.lol
+              DNS_SERVER_ADMIN_PASSWORD_FILE: /run/secrets/technitium/admin-password
+              DNS_SERVER_RECURSION: AllowOnlyForPrivateNetworks
+              # Logs on an emptyDir, not the 1Gi config PVC.
+              DNS_SERVER_LOG_FOLDER_PATH: /var/log/technitium/dns
+              DNS_SERVER_LOG_MAX_LOG_FILE_DAYS: "7"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 5380
+              # Ready = answering DNS, so the LB doesn't send queries early.
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 53
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 512Mi
+
+    service:
+      main:
+        controller: main
+        primary: true
+        ports:
+          http:
+            port: 5380
+      dns:
+        controller: main
+        type: LoadBalancer
+        annotations:
+          lbipam.cilium.io/ips: 10.0.10.202
+        # Real client IPs in query logs / recursion ACL instead of SNATed node IPs.
+        externalTrafficPolicy: Local
+        ports:
+          dns-udp:
+            port: 53
+            protocol: UDP
+          dns-tcp:
+            port: 53
+            protocol: TCP
+
+    route:
+      main:
+        hostnames:
+          - dns.jenya.lol
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 5380
+
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /etc/dns
+      logs:
+        type: emptyDir
+        globalMounts:
+          - path: /var/log/technitium/dns
+      admin-password:
+        type: secret
+        name: technitium-secret
+        globalMounts:
+          - path: /run/secrets/technitium/admin-password
+            subPath: admin-password
+            readOnly: true

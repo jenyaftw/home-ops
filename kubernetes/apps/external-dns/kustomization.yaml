@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - ./external-dns/ks.yaml
   - ./external-dns-pihole/ks.yaml
+  - ./external-dns-technitium/ks.yaml
