@@ -54,12 +54,12 @@ spec:
           main:
             image:
               repository: ghcr.io/jenyaftw/vibe-server
-              tag: sha-d9d2046
+              tag: sha-0c3e3eb
             env:
               TZ: Europe/Kiev
               VIBE_RUNNER: k8s
               VIBE_NAMESPACE: default
-              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:sha-d9d2046
+              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:sha-0c3e3eb
               # Site admins by Authentik username: the first one to sign in keeps the existing projects and chats.
               VIBE_SITE_ADMINS: jenyaftw
               VIBE_WORKER_MEMORY: 768Mi
@@ -154,8 +154,8 @@ spec:
           - backendRefs:
               - identifier: main
                 port: 8080
-      # Internet-facing, for `vibe agent` on machines outside the LAN: the agent socket, and the installer (the script is public,
-      # the vibe package needs a machine token). The socket authenticates with a per-machine token and carries only the traffic
+      # Internet-facing, for `vibe agent` on machines outside the LAN: the agent socket, the installer (the script is public,
+      # the vibe package needs a machine token), and the model API relay (run token; the provider's secret stays here). The socket authenticates with a per-machine token and carries only the traffic
       # of runs placed on that machine.
       agents:
         kind: HTTPRoute
@@ -178,6 +178,9 @@ spec:
               - path:
                   type: Exact
                   value: /install/vibe.tgz
+              - path:
+                  type: PathPrefix
+                  value: /relay
             backendRefs:
               - identifier: main
                 port: 8080
