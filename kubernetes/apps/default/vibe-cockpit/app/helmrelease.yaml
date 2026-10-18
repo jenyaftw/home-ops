@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/jenyaftw/vibe-cockpit
-              tag: sha-1eb83d3
+              tag: sha-c550684
             env:
               TZ: Europe/Kiev
               VIBE_URL: http://vibe.default.svc.cluster.local:8080
