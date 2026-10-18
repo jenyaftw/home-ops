@@ -54,12 +54,12 @@ spec:
           main:
             image:
               repository: ghcr.io/jenyaftw/vibe-server
-              tag: sha-7b3b4c5
+              tag: sha-93a3cf0
             env:
               TZ: Europe/Kiev
               VIBE_RUNNER: k8s
               VIBE_NAMESPACE: default
-              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:sha-7b3b4c5
+              VIBE_WORKER_IMAGE: ghcr.io/jenyaftw/vibe-worker:sha-93a3cf0
               # Site admins by Authentik username: the first one to sign in keeps the existing projects and chats.
               VIBE_SITE_ADMINS: jenyaftw
               VIBE_WORKER_MEMORY: 768Mi
