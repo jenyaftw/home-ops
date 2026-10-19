@@ -19,4 +19,5 @@ resources:
   - ./cpa-usage-keeper/ks.yaml
   - ./vibe/ks.yaml
   - ./vibe-cockpit/ks.yaml
+  - ./qa-picker/ks.yaml
   - ./technitium/ks.yaml

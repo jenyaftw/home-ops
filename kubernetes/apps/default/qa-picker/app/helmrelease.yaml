@@ -1,0 +1,39 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: qa-picker
+  namespace: default
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: qa-picker
+    namespace: default
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    fullnameOverride: qa-picker
+    imagePullSecrets:
+      - name: ghcr-pull-secret
+    # DATABASE_URL, REDIS_URL, APP_SECRET_KEY and the ADO webhook credentials.
+    secrets:
+      existingSecret: qa-picker-secrets
+    config:
+      TZ: Europe/Kiev
+      # No Entra app registration yet: every request is the built-in dev user, so the route sits behind
+      # Authentik (qa-picker-proxy in the authentik blueprint).
+      AUTH_MODE: dev
+      PUBLIC_BASE_URL: https://qa-picker.jenya.lol
+      CORS_ORIGINS: https://qa-picker.jenya.lol
+    # The chart pins APP_ENV=production, which refuses AUTH_MODE=dev; container env wins over its ConfigMap.
+    extraEnv:
+      - name: APP_ENV
+        value: test
+    api:
+      replicas: 1
+    web:
+      replicas: 1

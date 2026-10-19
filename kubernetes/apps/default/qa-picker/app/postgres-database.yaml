@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: postgres-qa-picker
+  namespace: database
+spec:
+  name: qa_picker
+  owner: qa_picker
+  cluster:
+    name: postgres
+  # Commit embeddings; the app's migrations need it but its role cannot create it.
+  extensions:
+    - name: vector
+      ensure: present

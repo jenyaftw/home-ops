@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: qa-picker
+  namespace: database
+spec:
+  cluster:
+    name: postgres
+  name: qa_picker
+  login: true
+  createdb: false
+  databaseRoleReclaimPolicy: retain
+  passwordSecret:
+    name: qa-picker-postgres-credentials

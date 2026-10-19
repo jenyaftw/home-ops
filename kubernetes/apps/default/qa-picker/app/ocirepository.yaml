@@ -1,0 +1,13 @@
+# Published by qa-picker's release workflow on every v* tag (private package, hence the pull secret).
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: qa-picker
+  namespace: default
+spec:
+  interval: 1h
+  url: oci://ghcr.io/jenyaftw/charts/qa-picker
+  secretRef:
+    name: ghcr-pull-secret
+  ref:
+    semver: "0.x"

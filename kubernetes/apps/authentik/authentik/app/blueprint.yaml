@@ -181,6 +181,32 @@ data:
           order: 0
         attrs:
           group: !KeyOf cockpit-users-group
+      # qa-picker runs with dev sign-in (no Entra app yet), so this is its only gate. Same people as the cockpit.
+      - model: authentik_providers_proxy.proxyprovider
+        id: qa-picker-proxy-provider
+        identifiers:
+          name: qa-picker-proxy
+        attrs:
+          authentication_flow: !KeyOf default-authentication-flow
+          authorization_flow: !KeyOf default-authorization-flow
+          invalidation_flow: !KeyOf default-invalidation-flow
+          mode: proxy
+          external_host: https://qa-picker.jenya.lol
+          internal_host: http://qa-picker-web.default.svc.cluster.local:8080
+          internal_host_ssl_validation: false
+      - model: authentik_core.application
+        id: qa-picker-application
+        identifiers:
+          slug: qa-picker
+        attrs:
+          name: QA Picker
+          provider: !KeyOf qa-picker-proxy-provider
+      - model: authentik_policies.policybinding
+        identifiers:
+          target: !KeyOf qa-picker-application
+          order: 0
+        attrs:
+          group: !KeyOf cockpit-users-group
       - model: authentik_outposts.outpost
         identifiers:
           managed: goauthentik.io/outposts/embedded
@@ -190,3 +216,4 @@ data:
             - !KeyOf grafana-proxy-provider
             - !KeyOf seerr-proxy-provider
             - !KeyOf cockpit-proxy-provider
+            - !KeyOf qa-picker-proxy-provider

@@ -1,0 +1,19 @@
+# Routed through Authentik's embedded outpost (Proxy Provider "qa-picker-proxy" in
+# kubernetes/apps/authentik/authentik/app/blueprint.yaml), which proxies to the web Service; its nginx forwards
+# /api, /webhooks and /slack to the api. Internal gateway only: the app runs with dev sign-in.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: qa-picker
+  namespace: default
+spec:
+  parentRefs:
+    - name: internal
+      namespace: kube-system
+  hostnames:
+    - qa-picker.jenya.lol
+  rules:
+    - backendRefs:
+        - name: authentik-server
+          namespace: authentik
+          port: 80
