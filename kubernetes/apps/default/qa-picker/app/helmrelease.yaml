@@ -19,20 +19,23 @@ spec:
     fullnameOverride: qa-picker
     imagePullSecrets:
       - name: ghcr-pull-secret
-    # DATABASE_URL, REDIS_URL, APP_SECRET_KEY and the ADO webhook credentials.
+    # DATABASE_URL, REDIS_URL, APP_SECRET_KEY, ADO_PAT, the ADO webhook credentials and the Slack/OpenAI secrets.
     secrets:
       existingSecret: qa-picker-secrets
     config:
       TZ: Europe/Kiev
-      # No Entra app registration yet: every request is the built-in dev user, so the route sits behind
-      # Authentik (qa-picker-proxy in the authentik blueprint).
-      AUTH_MODE: dev
       PUBLIC_BASE_URL: https://qa-picker.jenya.lol
       CORS_ORIGINS: https://qa-picker.jenya.lol
-    # The chart pins APP_ENV=production, which refuses AUTH_MODE=dev; container env wins over its ConfigMap.
-    extraEnv:
-      - name: APP_ENV
-        value: test
+      # Entra app registrations in the meetwonka tenant: qa-picker-api (exposes access_as_user and the
+      # QaPicker.Admin/Viewer roles) and qa-picker-web (the SPA, redirect https://qa-picker.jenya.lol).
+      AUTH_MODE: entra
+      ENTRA_TENANT_ID: 0b316ab4-c894-4abb-874a-3bbdc627273f
+      ENTRA_CLIENT_ID: 87b2425c-3155-4f64-8e43-e4278c8edd11
+      ENTRA_API_AUDIENCE: api://e15ddae9-6bd3-4ebf-ab67-4a05a1353477
+      ENTRA_API_SCOPE: api://e15ddae9-6bd3-4ebf-ab67-4a05a1353477/access_as_user
+      RBAC_ADMIN_EMAILS: jenya@meetwonka.com
+      ADO_ORG_URL: https://dev.azure.com/meetwonka
+      ADO_AUTH_TYPE: pat
     api:
       replicas: 1
     web:

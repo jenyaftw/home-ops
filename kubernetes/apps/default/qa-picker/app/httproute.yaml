@@ -1,6 +1,5 @@
-# Routed through Authentik's embedded outpost (Proxy Provider "qa-picker-proxy" in
-# kubernetes/apps/authentik/authentik/app/blueprint.yaml), which proxies to the web Service; its nginx forwards
-# /api, /webhooks and /slack to the api. Internal gateway only: the app runs with dev sign-in.
+# The dashboard and API, LAN only; sign-in is Entra ID. The web Service's nginx forwards /api, /webhooks and /slack
+# to the api. What Azure DevOps and Slack call from the internet is on httproute-hooks.yaml.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -14,6 +13,5 @@ spec:
     - qa-picker.jenya.lol
   rules:
     - backendRefs:
-        - name: authentik-server
-          namespace: authentik
-          port: 80
+        - name: qa-picker-web
+          port: 8080

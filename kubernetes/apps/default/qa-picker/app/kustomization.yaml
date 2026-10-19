@@ -4,6 +4,7 @@ resources:
   - ./ocirepository.yaml
   - ./helmrelease.yaml
   - ./httproute.yaml
+  - ./httproute-hooks.yaml
   - ./postgres-role.yaml
   - ./postgres-database.yaml
   - ./redis.yaml

@@ -1,0 +1,28 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: qa-picker-hooks
+  namespace: default
+  # external-dns publishes a public Cloudflare record only for routes with this label.
+  labels:
+    external-dns.io/enabled: "true"
+spec:
+  parentRefs:
+    - name: external
+      namespace: kube-system
+  hostnames:
+    - qa-picker-hooks.jenya.lol
+  # Internet-facing only for what Azure DevOps and Slack call: service hooks (basic auth plus the
+  # X-QA-Picker-Secret header) and Slack interactivity (signed requests). The dashboard, the API and the
+  # Slack OAuth callback stay on the internal route.
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /webhooks/ado
+        - path:
+            type: Exact
+            value: /slack/interactions
+      backendRefs:
+        - name: qa-picker-api
+          port: 8000
