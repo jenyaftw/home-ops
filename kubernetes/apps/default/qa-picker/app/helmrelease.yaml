@@ -36,6 +36,8 @@ spec:
       RBAC_ADMIN_EMAILS: jenya@meetwonka.com
       ADO_ORG_URL: https://dev.azure.com/meetwonka
       ADO_AUTH_TYPE: pat
+      # The qa-picker Slack app (manifest: qa-picker's slack/manifest.yaml, interactivity on qa-picker-hooks.jenya.lol).
+      SLACK_CLIENT_ID: "9724711904785.12349872604706"
     api:
       replicas: 1
     web:
