@@ -38,6 +38,11 @@ spec:
       ADO_AUTH_TYPE: pat
       # The qa-picker Slack app (manifest: qa-picker's slack/manifest.yaml, interactivity on qa-picker-hooks.jenya.lol).
       SLACK_CLIENT_ID: "9724711904785.12349872604706"
+      # Rescores the top 8 candidates in 6-8s with rationales that cite the changed files (needs qa-picker >= 0.1.6).
+      OPENAI_DECISION_MODEL: gpt-5.6-sol
+      OPENAI_DECISION_REASONING_EFFORT: low
+      OPENAI_DECISION_TIMEOUT_SECONDS: "30"
+      DECISION_TIMEOUT_SECONDS: "45"
     api:
       replicas: 1
     web:
