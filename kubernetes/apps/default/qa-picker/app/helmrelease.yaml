@@ -43,6 +43,9 @@ spec:
       OPENAI_DECISION_REASONING_EFFORT: low
       OPENAI_DECISION_TIMEOUT_SECONDS: "30"
       DECISION_TIMEOUT_SECONDS: "45"
+      # Final score = 30% deterministic + 70% model: the model sees which commits built the feature a PR
+      # touches, the deterministic score mostly counts how often someone changed its files.
+      DECISION_BLEND: "0.3"
     api:
       replicas: 1
     web:
