@@ -1,5 +1,5 @@
-# The dashboard and API, LAN only; sign-in is Entra ID. The web Service's nginx forwards /api, /webhooks and /slack
-# to the api. What Azure DevOps and Slack call from the internet is on httproute-hooks.yaml.
+# The dashboard and API, LAN only; sign-in is Entra ID. One Service serves both. What Azure DevOps and Slack call
+# from the internet is on httproute-hooks.yaml.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -13,5 +13,5 @@ spec:
     - qa-picker.jenya.lol
   rules:
     - backendRefs:
-        - name: qa-picker-web
-          port: 8080
+        - name: qa-picker
+          port: 8000

@@ -9,5 +9,6 @@ spec:
   url: oci://ghcr.io/jenyaftw/charts/qa-picker
   secretRef:
     name: ghcr-pull-secret
+  # 0.2 runs as one pod on SQLite; these values do not fit the 0.1 chart.
   ref:
-    semver: "0.x"
+    semver: ">=0.2.0 <1.0.0"
