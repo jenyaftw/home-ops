@@ -4,8 +4,6 @@ metadata:
   name: qa-picker
   namespace: flux-system
 spec:
-  # No targetNamespace: the app lives in default, but its Database and
-  # DatabaseRole must live alongside the shared Cluster in database.
   path: ./kubernetes/apps/default/qa-picker/app
   sourceRef:
     kind: GitRepository
@@ -15,9 +13,6 @@ spec:
   interval: 1h
   retryInterval: 1m
   timeout: 10m
-  dependsOn:
-    - name: postgres
-      namespace: flux-system
   decryption:
     provider: sops
     secretRef:

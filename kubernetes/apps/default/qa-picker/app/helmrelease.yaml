@@ -5,8 +5,6 @@ metadata:
   namespace: default
 spec:
   interval: 1h
-  # The first start of 0.2 copies the Postgres database into SQLite before it is ready.
-  timeout: 15m
   chartRef:
     kind: OCIRepository
     name: qa-picker
@@ -21,8 +19,7 @@ spec:
     fullnameOverride: qa-picker
     imagePullSecrets:
       - name: ghcr-pull-secret
-    # APP_SECRET_KEY, ADO_PAT, the ADO webhook credentials and the Slack/OpenAI secrets. Its DATABASE_URL
-    # (the 0.1 Postgres database) is what 0.2 imports on its first start; REDIS_URL is ignored.
+    # APP_SECRET_KEY, ADO_PAT, the ADO webhook credentials and the Slack/OpenAI secrets.
     secrets:
       existingSecret: qa-picker-secrets
     # One pod: the SQLite database and the repository clones.
