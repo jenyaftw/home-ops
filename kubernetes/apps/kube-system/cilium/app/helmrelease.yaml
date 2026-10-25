@@ -60,6 +60,12 @@ spec:
     gatewayAPI:
       enabled: true
 
+    # The bootstrap `helm install` left envoy-xds-mode: ads in cilium-config, but
+    # the chart's cilium-envoy bootstrap only speaks split LDS/CDS - Envoy never
+    # syncs and every new pod's CNI ADD times out. Own the key so it stays split.
+    envoy:
+      xdsMode: split
+
     prometheus:
       enabled: true
       serviceMonitor:
