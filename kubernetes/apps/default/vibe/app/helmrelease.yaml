@@ -69,6 +69,12 @@ spec:
               # node attaches at most 24, which capped how many tasks and chats could run at once.
               VIBE_SHARED_VOLUME: vibe-work
               VIBE_SHARED_VOLUME_MOUNT: /shared
+              # Self-deploy (vibe docs/self-deploy.md): every green merge to main is pulled from GHCR and swapped in
+              # under the image's supervisor, which rolls back what does not come up healthy. Releases live on the
+              # shared volume so task pods and the chat host run them too. Only Dockerfile changes need the tag above.
+              VIBE_SELF_DIR: /shared/vibe-self
+              VIBE_SELF_SOURCE: ghcr.io/jenyaftw/vibe-bundle:main
+              VIBE_REGISTRY_CONFIG: /etc/vibe/registry/.dockerconfigjson
               VIBE_ORCHESTRATOR_URL: http://vibe.default.svc.cluster.local:8080
               VIBE_PUBLIC_URL: https://vibe.jenya.lol
               # What `vibe agent` dials on people's own machines (shown in the board's install command). Only /ws/agent is
@@ -135,6 +141,12 @@ spec:
         existingClaim: vibe-work
         globalMounts:
           - path: /shared
+      registry:
+        type: secret
+        name: ghcr-pull-secret
+        globalMounts:
+          - path: /etc/vibe/registry
+            readOnly: true
 
     service:
       main:
